@@ -6,6 +6,7 @@ from fastapi import (
 from app.api.dependencies import (
     get_current_user,
 )
+from app.api.routes import account
 from app.api.routes.anomalies import (
     router as anomalies_router,
 )
@@ -50,6 +51,7 @@ api_router.include_router(
     prefix="/auth",
     tags=["Authentication"],
 )
+api_router.include_router(account.router)
 
 # Every router included here requires a JWT.
 protected_router = APIRouter(dependencies=[Depends(get_current_user)])
