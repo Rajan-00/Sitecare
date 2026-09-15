@@ -1,12 +1,13 @@
 import type {
   DashboardSummary,
+  Incident,
+  MaintenancePrediction,
   MonitorCheck,
   Website,
   WebsiteCreate,
   WebsiteMetric,
   WebsiteStatusResponse,
   WebsiteUpdate,
-  Incident,
 } from "../types/dashboard";
 
 const API_BASE_URL =
@@ -137,5 +138,20 @@ export function getAnomalies(
 
   return fetchJson<MonitorCheck[]>(
     `/anomalies${query}`,
+  );
+}
+
+export function getMaintenancePredictions():
+Promise<MaintenancePrediction[]> {
+  return fetchJson<MaintenancePrediction[]>(
+    "/predictions/maintenance",
+  );
+}
+
+export function getWebsiteMaintenancePrediction(
+  websiteId: number,
+): Promise<MaintenancePrediction> {
+  return fetchJson<MaintenancePrediction>(
+    `/predictions/maintenance/${websiteId}`,
   );
 }

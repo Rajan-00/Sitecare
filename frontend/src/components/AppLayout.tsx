@@ -1,15 +1,15 @@
 import type { ReactNode } from "react";
 import {
-  Activity,
   Bell,
   BrainCircuit,
-
+  ChartNoAxesCombined,
   CircleUserRound,
   LayoutDashboard,
   PlusCircle,
   Settings,
   ShieldCheck,
-  TriangleAlert
+  TriangleAlert,
+  Wrench,
 } from "lucide-react";
 import {
   Link,
@@ -25,11 +25,9 @@ function getNavigationClass({
 }: {
   isActive: boolean;
 }): string {
-  if (isActive) {
-    return "navigation-item navigation-item--active";
-  }
-
-  return "navigation-item";
+  return isActive
+    ? "navigation-item navigation-item--active"
+    : "navigation-item";
 }
 
 export function AppLayout({
@@ -75,51 +73,40 @@ export function AppLayout({
             className={getNavigationClass}
             to="/incidents"
           >
-          <TriangleAlert size={19} />
-           Incidents
+            <TriangleAlert size={19} />
+            Incidents
           </NavLink>
 
-          <a
-            className="navigation-item"
-            href="#websites"
-          >
-            <Activity size={19} />
-            Websites
-          </a>
-
-         <NavLink
-  className={getNavigationClass}
-  to="/ai-insights"
->
-  <BrainCircuit size={19} />
-  AI Insights
-</NavLink>
-
-          <span
-            className="
-              navigation-item
-              navigation-item--disabled
-            "
-            title="AI insights will be added in a future phase."
+          <NavLink
+            className={getNavigationClass}
+            to="/ai-insights"
           >
             <BrainCircuit size={19} />
             AI Insights
+          </NavLink>
+
+          <NavLink
+            className={getNavigationClass}
+            to="/maintenance"
+          >
+            <Wrench size={19} />
+            Maintenance
+          </NavLink>
+
+          <span
+            className="navigation-item navigation-item--disabled"
+            title="Analytics will be added in the next phase."
+          >
+            <ChartNoAxesCombined size={19} />
+            Analytics
           </span>
 
-          <p
-            className="
-              sidebar__label
-              sidebar__label--second
-            "
-          >
+          <p className="sidebar__label sidebar__label--second">
             System
           </p>
 
           <span
-            className="
-              navigation-item
-              navigation-item--disabled
-            "
+            className="navigation-item navigation-item--disabled"
             title="Settings will be added in a future phase."
           >
             <Settings size={19} />
@@ -128,7 +115,9 @@ export function AppLayout({
         </nav>
 
         <div className="sidebar__footer">
-          <div className="user-avatar">RR</div>
+          <div className="user-avatar">
+            RR
+          </div>
 
           <div>
             <strong>Rajan Rawal</strong>

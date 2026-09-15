@@ -88,3 +88,26 @@ export interface Incident {
   resolved_at: string | null;
   duration_seconds: number | null;
 }
+export type MaintenanceRiskLevel =
+  | "unknown"
+  | "low"
+  | "medium"
+  | "high"
+  | "critical";
+
+export interface MaintenancePrediction {
+  website_id: number;
+  website_name: string;
+  website_url: string;
+  prediction_status: "learning" | "ready";
+  risk_level: MaintenanceRiskLevel;
+  risk_score: number;
+  confidence_percentage: number;
+  sample_count: number;
+  current_average_response_time_ms: number | null;
+  predicted_response_time_ms: number | null;
+  response_time_trend_ms: number | null;
+  failure_rate_percentage: number;
+  anomaly_rate_percentage: number;
+  recommendation: string;
+}

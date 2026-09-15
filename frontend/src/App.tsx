@@ -12,6 +12,7 @@ import { EditWebsitePage } from "./pages/EditWebsitePage";
 import { WebsiteDetailPage } from "./pages/WebsiteDetailPage";
 import { IncidentsPage } from "./pages/IncidentsPage";
 import { AIInsightsPage } from "./pages/AIInsightsPage";
+import { MaintenancePage } from "./pages/MaintenancePage";
 
 function App() {
   return (
@@ -49,6 +50,11 @@ function App() {
             path="/ai-insights"
             element={<AIInsightsPage />}
           />
+
+          <Route
+            path="/maintenance"
+            element={<MaintenancePage />}
+           />
 
 
 
