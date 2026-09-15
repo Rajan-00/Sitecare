@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from datetime import UTC, datetime
 
 from sqlalchemy import select
@@ -6,6 +7,12 @@ from sqlalchemy.orm import Session
 from app.models.incident import Incident
 from app.models.monitor_check import MonitorCheck
 from app.models.website import Website
+
+
+@dataclass
+class IncidentStateResult:
+    incident: Incident | None
+    event: str | None
 
 
 def make_utc(value: datetime) -> datetime:
@@ -60,7 +67,7 @@ def update_incident_state(
     database: Session,
     website: Website,
     check: MonitorCheck,
-) -> Incident | None:
+) -> IncidentStateResult:
     open_incident = get_open_incident(
         database,
         website.id,
@@ -78,7 +85,10 @@ def update_incident_state(
             if severity == "critical":
                 open_incident.severity = "critical"
 
-            return open_incident
+            return IncidentStateResult(
+                incident=open_incident,
+                event="updated",
+            )
 
         incident = Incident(
             website_id=website.id,
@@ -93,7 +103,10 @@ def update_incident_state(
 
         database.add(incident)
 
-        return incident
+        return IncidentStateResult(
+            incident=incident,
+            event="opened",
+        )
 
     if open_incident is not None:
         resolved_at = make_utc(check.checked_at)
@@ -106,6 +119,12 @@ def update_incident_state(
             2,
         )
 
-        return open_incident
+        return IncidentStateResult(
+            incident=open_incident,
+            event="resolved",
+        )
 
-    return None
+    return IncidentStateResult(
+        incident=None,
+        event=None,
+    )

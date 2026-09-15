@@ -10,6 +10,9 @@ from app.services.anomaly_detector import (
 from app.services.incident_manager import (
     update_incident_state,
 )
+from app.services.notification_service import (
+    send_monitoring_notification,
+)
 from app.services.website_monitor import check_website
 
 
@@ -42,7 +45,7 @@ async def perform_and_store_check(
         monitor_check.anomaly_score = anomaly_result.anomaly_score
         monitor_check.anomaly_reason = anomaly_result.anomaly_reason
 
-        update_incident_state(
+        incident_result = update_incident_state(
             database,
             website,
             monitor_check,
@@ -53,5 +56,12 @@ async def perform_and_store_check(
     except Exception:
         database.rollback()
         raise
+
+    await send_monitoring_notification(
+        database=database,
+        website=website,
+        check=monitor_check,
+        incident_event=incident_result.event,
+    )
 
     return monitor_check

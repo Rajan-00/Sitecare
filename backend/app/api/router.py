@@ -5,6 +5,9 @@ from app.api.routes.dashboard import router as dashboard_router
 from app.api.routes.health import router as health_router
 from app.api.routes.incidents import router as incidents_router
 from app.api.routes.monitoring import router as monitoring_router
+from app.api.routes.notifications import (
+    router as notifications_router,
+)
 from app.api.routes.predictions import (
     router as predictions_router,
 )
@@ -51,4 +54,10 @@ api_router.include_router(
     predictions_router,
     prefix="/predictions",
     tags=["Maintenance Predictions"],
+)
+
+api_router.include_router(
+    notifications_router,
+    prefix="/notifications",
+    tags=["Notifications"],
 )
