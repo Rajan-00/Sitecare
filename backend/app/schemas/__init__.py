@@ -6,7 +6,11 @@ from app.schemas.monitor_check import (
     MonitorCheckResponse,
     WebsiteStatusResponse,
 )
-from app.schemas.website import WebsiteCreate, WebsiteResponse
+from app.schemas.website import (
+    WebsiteCreate,
+    WebsiteResponse,
+    WebsiteUpdate,
+)
 
 __all__ = [
     "DashboardSummaryResponse",
@@ -15,4 +19,5 @@ __all__ = [
     "WebsiteMetricResponse",
     "WebsiteResponse",
     "WebsiteStatusResponse",
+    "WebsiteUpdate",
 ]

@@ -14,6 +14,7 @@ import {
   RefreshCw,
   ShieldCheck,
   TriangleAlert,
+  Settings,
 } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
 
@@ -176,29 +177,43 @@ export function WebsiteDetailPage() {
   return (
     <>
       <div className="details-navigation">
-        <Link className="back-link" to="/">
-          <ArrowLeft size={17} />
-          Back to dashboard
-        </Link>
+  <Link className="back-link" to="/">
+    <ArrowLeft size={17} />
+    Back to dashboard
+  </Link>
 
-        <button
-          className="primary-button"
-          type="button"
-          disabled={isChecking}
-          onClick={() => void handleCheckNow()}
-        >
-          {isChecking ? (
-            <RefreshCw
-              className="spin-animation"
-              size={17}
-            />
-          ) : (
-            <Play size={17} />
-          )}
+  <div className="dashboard-actions">
+    <Link
+      className="secondary-button"
+      to={`/websites/${numericWebsiteId}/edit`}
+    >
+      <Settings size={17} />
+      Settings
+    </Link>
 
-          {isChecking ? "Checking" : "Check now"}
-        </button>
-      </div>
+    <button
+      className="primary-button"
+      type="button"
+      disabled={isChecking || !website.is_active}
+      onClick={() => void handleCheckNow()}
+    >
+      {isChecking ? (
+        <RefreshCw
+          className="spin-animation"
+          size={17}
+        />
+      ) : (
+        <Play size={17} />
+      )}
+
+      {!website.is_active
+        ? "Monitoring disabled"
+        : isChecking
+          ? "Checking"
+          : "Check now"}
+    </button>
+  </div>
+</div>
 
       {error && (
         <div className="form-error detail-error">

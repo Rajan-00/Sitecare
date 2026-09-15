@@ -10,7 +10,10 @@ export interface DashboardSummary {
   average_response_time_ms: number | null;
 }
 
-export type WebsiteStatus = "up" | "down" | "not_checked";
+export type WebsiteStatus =
+  | "up"
+  | "down"
+  | "not_checked";
 
 export interface Website {
   id: number;
@@ -25,6 +28,13 @@ export interface WebsiteCreate {
   name: string;
   url: string;
   check_interval_minutes: number;
+}
+
+export interface WebsiteUpdate {
+  name?: string;
+  url?: string;
+  check_interval_minutes?: number;
+  is_active?: boolean;
 }
 
 export interface MonitorCheck {

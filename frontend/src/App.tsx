@@ -8,6 +8,7 @@ import {
 import { AppLayout } from "./components/AppLayout";
 import { AddWebsitePage } from "./pages/AddWebsitePage";
 import { DashboardPage } from "./pages/DashboardPage";
+import { EditWebsitePage } from "./pages/EditWebsitePage";
 import { WebsiteDetailPage } from "./pages/WebsiteDetailPage";
 
 function App() {
@@ -25,6 +26,11 @@ function App() {
           <Route
             path="/websites/:websiteId"
             element={<WebsiteDetailPage />}
+          />
+
+          <Route
+            path="/websites/:websiteId/edit"
+            element={<EditWebsitePage />}
           />
 
           <Route

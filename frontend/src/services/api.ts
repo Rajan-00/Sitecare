@@ -5,6 +5,7 @@ import type {
   WebsiteCreate,
   WebsiteMetric,
   WebsiteStatusResponse,
+  WebsiteUpdate,
 } from "../types/dashboard";
 
 const API_BASE_URL =
@@ -93,4 +94,33 @@ export function runWebsiteCheck(
       method: "POST",
     },
   );
+}
+export function updateWebsite(
+  websiteId: number,
+  payload: WebsiteUpdate,
+): Promise<Website> {
+  return fetchJson<Website>(
+    `/websites/${websiteId}`,
+    {
+      method: "PATCH",
+      body: JSON.stringify(payload),
+    },
+  );
+}
+
+export async function deleteWebsite(
+  websiteId: number,
+): Promise<void> {
+  const response = await fetch(
+    `${API_BASE_URL}/websites/${websiteId}`,
+    {
+      method: "DELETE",
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      `Delete failed with status ${response.status}`,
+    );
+  }
 }
