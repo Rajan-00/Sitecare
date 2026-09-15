@@ -28,19 +28,12 @@ def calculate_statistical_anomaly(
 
     historical_median = median(historical_values)
 
-    absolute_deviations = [
-        abs(value - historical_median)
-        for value in historical_values
-    ]
+    absolute_deviations = [abs(value - historical_median) for value in historical_values]
 
     median_absolute_deviation = median(absolute_deviations)
 
     if median_absolute_deviation > 0:
-        robust_z_score = (
-            0.6745
-            * abs(current_value - historical_median)
-            / median_absolute_deviation
-        )
+        robust_z_score = 0.6745 * abs(current_value - historical_median) / median_absolute_deviation
 
         return robust_z_score >= ROBUST_Z_SCORE_THRESHOLD
 
@@ -79,13 +72,9 @@ def detect_anomaly_from_values(
 
     model.fit(training_data)
 
-    prediction = int(
-        model.predict([[current_value]])[0]
-    )
+    prediction = int(model.predict([[current_value]])[0])
 
-    decision_score = float(
-        model.decision_function([[current_value]])[0]
-    )
+    decision_score = float(model.decision_function([[current_value]])[0])
 
     machine_learning_anomaly = prediction == -1
 
@@ -94,21 +83,13 @@ def detect_anomaly_from_values(
         current_value=current_value,
     )
 
-    is_anomaly = (
-        machine_learning_anomaly
-        or statistical_anomaly
-    )
+    is_anomaly = machine_learning_anomaly or statistical_anomaly
 
-    historical_average = (
-        sum(historical_values)
-        / len(historical_values)
-    )
+    historical_average = sum(historical_values) / len(historical_values)
 
     if is_anomaly:
         percentage_difference = (
-            (current_value - historical_average)
-            / historical_average
-            * 100
+            (current_value - historical_average) / historical_average * 100
             if historical_average > 0
             else 0
         )
@@ -164,9 +145,7 @@ def detect_check_anomaly(
     )
 
     historical_values = [
-        float(value)
-        for value in database.scalars(statement).all()
-        if value is not None
+        float(value) for value in database.scalars(statement).all() if value is not None
     ]
 
     return detect_anomaly_from_values(
