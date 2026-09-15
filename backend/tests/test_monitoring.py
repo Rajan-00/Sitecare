@@ -33,8 +33,8 @@ def test_run_successful_website_check(
         )
 
     monkeypatch.setattr(
-    "app.services.monitoring_manager.check_website",
-    fake_check_website,
+        "app.services.monitoring_manager.check_website",
+        fake_check_website,
     )
 
     response = client.post(f"/api/v1/monitoring/websites/{website_id}/check")

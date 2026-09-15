@@ -2,7 +2,6 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-
 from app.db.session import get_db
 from app.models.monitor_check import MonitorCheck
 from app.models.website import Website
