@@ -9,6 +9,9 @@ from sqlalchemy import delete, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from app.api.dependencies import (
+    CurrentUserDependency,
+)
 from app.db.session import get_db
 from app.models.incident import Incident
 from app.models.monitor_check import MonitorCheck
@@ -18,23 +21,32 @@ from app.schemas.website import (
     WebsiteResponse,
     WebsiteUpdate,
 )
+from app.services.access_control import (
+    get_owned_website,
+)
 
 router = APIRouter()
 
 
-def get_website_or_404(
-    website_id: int,
+def ensure_unique_url(
     database: Session,
-) -> Website:
-    website = database.get(Website, website_id)
+    user_id: int,
+    url: str,
+    excluded_website_id: int | None = None,
+) -> None:
+    statement = select(Website).where(
+        Website.user_id == user_id,
+        Website.url == url,
+    )
 
-    if website is None:
+    if excluded_website_id is not None:
+        statement = statement.where(Website.id != excluded_website_id)
+
+    if database.scalar(statement) is not None:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Website not found.",
+            status_code=status.HTTP_409_CONFLICT,
+            detail=("A website with this URL already exists."),
         )
-
-    return website
 
 
 @router.post(
@@ -44,11 +56,21 @@ def get_website_or_404(
 )
 def create_website(
     payload: WebsiteCreate,
+    current_user: CurrentUserDependency,
     database: Session = Depends(get_db),
 ) -> Website:
+    normalized_url = str(payload.url)
+
+    ensure_unique_url(
+        database,
+        current_user.id,
+        normalized_url,
+    )
+
     website = Website(
-        name=payload.name,
-        url=str(payload.url),
+        user_id=current_user.id,
+        name=payload.name.strip(),
+        url=normalized_url,
         check_interval_minutes=(payload.check_interval_minutes),
     )
 
@@ -61,7 +83,7 @@ def create_website(
 
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail="A website with this URL already exists.",
+            detail="Unable to create website.",
         ) from None
 
     database.refresh(website)
@@ -74,9 +96,14 @@ def create_website(
     response_model=list[WebsiteResponse],
 )
 def list_websites(
+    current_user: CurrentUserDependency,
     database: Session = Depends(get_db),
 ) -> list[Website]:
-    statement = select(Website).order_by(Website.created_at.desc())
+    statement = (
+        select(Website)
+        .where(Website.user_id == current_user.id)
+        .order_by(Website.created_at.desc())
+    )
 
     return list(database.scalars(statement).all())
 
@@ -87,11 +114,13 @@ def list_websites(
 )
 def get_website(
     website_id: int,
+    current_user: CurrentUserDependency,
     database: Session = Depends(get_db),
 ) -> Website:
-    return get_website_or_404(
-        website_id,
+    return get_owned_website(
         database,
+        current_user,
+        website_id,
     )
 
 
@@ -102,31 +131,33 @@ def get_website(
 def update_website(
     website_id: int,
     payload: WebsiteUpdate,
+    current_user: CurrentUserDependency,
     database: Session = Depends(get_db),
 ) -> Website:
-    website = get_website_or_404(
-        website_id,
+    website = get_owned_website(
         database,
+        current_user,
+        website_id,
     )
 
     update_data = payload.model_dump(exclude_unset=True)
 
     if payload.url is not None:
-        update_data["url"] = str(payload.url)
+        normalized_url = str(payload.url)
+
+        ensure_unique_url(
+            database,
+            current_user.id,
+            normalized_url,
+            excluded_website_id=website.id,
+        )
+
+        update_data["url"] = normalized_url
 
     for field, value in update_data.items():
         setattr(website, field, value)
 
-    try:
-        database.commit()
-    except IntegrityError:
-        database.rollback()
-
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="A website with this URL already exists.",
-        ) from None
-
+    database.commit()
     database.refresh(website)
 
     return website
@@ -138,12 +169,15 @@ def update_website(
 )
 def delete_website(
     website_id: int,
+    current_user: CurrentUserDependency,
     database: Session = Depends(get_db),
 ) -> Response:
-    website = get_website_or_404(
-        website_id,
+    website = get_owned_website(
         database,
+        current_user,
+        website_id,
     )
+
     database.execute(delete(Incident).where(Incident.website_id == website.id))
 
     database.execute(delete(MonitorCheck).where(MonitorCheck.website_id == website.id))

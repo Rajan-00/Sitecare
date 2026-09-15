@@ -1,4 +1,7 @@
 from fastapi.testclient import TestClient
+from sqlalchemy.orm import Session
+
+from app.models.website import Website
 
 
 def test_update_website(
@@ -103,3 +106,47 @@ def test_empty_update_is_rejected(
     )
 
     assert response.status_code == 422
+
+def test_created_website_has_owner(
+    client: TestClient,
+    database: Session,
+) -> None:
+    response = client.post(
+        "/api/v1/websites",
+        json={
+            "name": "Owned Website",
+            "url": "https://owned.example.com",
+            "check_interval_minutes": 5,
+        },
+    )
+
+    assert response.status_code == 201
+
+    website = database.get(
+        Website,
+        response.json()["id"],
+    )
+
+    assert website is not None
+    assert website.user_id == 999
+
+
+def test_user_cannot_access_unowned_website(
+    client: TestClient,
+    database: Session,
+) -> None:
+    website = Website(
+        user_id=500,
+        name="Another User Website",
+        url="https://private.example.com/",
+        check_interval_minutes=5,
+        is_active=True,
+    )
+
+    database.add(website)
+    database.commit()
+    database.refresh(website)
+
+    response = client.get(f"/api/v1/websites/{website.id}")
+
+    assert response.status_code == 404

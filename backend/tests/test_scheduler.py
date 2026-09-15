@@ -12,6 +12,7 @@ def create_website(interval: int = 5) -> Website:
         url="https://example.com/",
         check_interval_minutes=interval,
         is_active=True,
+        user_id=999,
     )
 
 

@@ -16,6 +16,7 @@ def test_list_anomalies(
         url="https://example.com/",
         check_interval_minutes=5,
         is_active=True,
+        user_id=999,
     )
 
     database.add(website)
