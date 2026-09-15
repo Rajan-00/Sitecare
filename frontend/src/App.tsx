@@ -13,6 +13,7 @@ import { WebsiteDetailPage } from "./pages/WebsiteDetailPage";
 import { IncidentsPage } from "./pages/IncidentsPage";
 import { AIInsightsPage } from "./pages/AIInsightsPage";
 import { MaintenancePage } from "./pages/MaintenancePage";
+import { AnalyticsPage } from "./pages/AnalyticsPage";
 
 function App() {
   return (
@@ -55,6 +56,10 @@ function App() {
             path="/maintenance"
             element={<MaintenancePage />}
            />
+          <Route
+           path="/analytics"
+           element={<AnalyticsPage />}
+          /> 
 
 
 

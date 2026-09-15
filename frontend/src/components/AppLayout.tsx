@@ -93,13 +93,13 @@ export function AppLayout({
             Maintenance
           </NavLink>
 
-          <span
-            className="navigation-item navigation-item--disabled"
-            title="Analytics will be added in the next phase."
-          >
-            <ChartNoAxesCombined size={19} />
-            Analytics
-          </span>
+         <NavLink
+            className={getNavigationClass}
+            to="/analytics"
+        >
+          <ChartNoAxesCombined size={19} />
+          Analytics
+          </NavLink>
 
           <p className="sidebar__label sidebar__label--second">
             System

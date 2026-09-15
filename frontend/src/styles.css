@@ -952,6 +952,7 @@ a {
 .navigation-item--disabled {
   cursor: not-allowed;
   opacity: 0.48;
+  user-select: none;
 }
 
 .navigation-item--disabled:hover {
@@ -1580,5 +1581,186 @@ a {
 
   .prediction-metrics {
     grid-template-columns: 1fr;
+  }
+}
+
+.analytics-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 25px;
+  margin-bottom: 20px;
+  padding: 23px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: white;
+}
+
+.analytics-header h2 {
+  margin: 0;
+  font-family: "Manrope", sans-serif;
+  font-size: 22px;
+}
+
+.analytics-header p:last-child {
+  margin: 7px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.analytics-controls {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.analytics-controls label {
+  color: #69758a;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.analytics-controls select {
+  min-width: 190px;
+  height: 40px;
+  padding: 0 34px 0 12px;
+  color: #344057;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  outline: none;
+  background: white;
+}
+
+.analytics-controls select:focus {
+  border-color: #7188ec;
+  box-shadow: 0 0 0 4px rgba(66, 99, 235, 0.1);
+}
+
+.analytics-grid {
+  display: grid;
+  grid-template-columns:
+    minmax(0, 2fr)
+    minmax(300px, 1fr);
+  gap: 17px;
+}
+
+.chart-card {
+  min-width: 0;
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: white;
+  box-shadow: 0 8px 28px rgba(31, 42, 68, 0.04);
+}
+
+.chart-card__heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 15px;
+  margin-bottom: 12px;
+}
+
+.chart-card__heading h3 {
+  margin: 0;
+  color: #273146;
+  font-family: "Manrope", sans-serif;
+  font-size: 15px;
+}
+
+.chart-card__heading p {
+  margin: 5px 0 0;
+  color: #8a94a6;
+  font-size: 10px;
+}
+
+.chart-website-name {
+  padding: 5px 9px;
+  color: #536276;
+  border-radius: 999px;
+  background: #f1f3f7;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.chart-container {
+  width: 100%;
+  min-height: 330px;
+}
+
+.chart-loading,
+.chart-empty {
+  display: flex;
+  min-height: 300px;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 9px;
+  color: #8a94a6;
+}
+
+.chart-empty p {
+  margin: 0;
+  font-size: 11px;
+}
+
+.availability-legend {
+  display: flex;
+  justify-content: center;
+  gap: 28px;
+}
+
+.availability-legend > div {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.availability-legend p {
+  margin: 0;
+  color: #7b8597;
+  font-size: 10px;
+}
+
+.availability-legend strong {
+  display: block;
+  margin-top: 2px;
+  color: #2c374c;
+  font-size: 13px;
+}
+
+.legend-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+}
+
+.legend-dot--up {
+  background: #20b877;
+}
+
+.legend-dot--down {
+  background: #e5484d;
+}
+
+@media (max-width: 1100px) {
+  .analytics-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 760px) {
+  .analytics-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .analytics-controls {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .analytics-controls select {
+    width: 100%;
   }
 }
