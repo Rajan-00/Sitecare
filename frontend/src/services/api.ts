@@ -1,3 +1,4 @@
+import { getStoredToken } from "./authStorage";
 import type {
   DashboardSummary,
   Incident,
@@ -10,7 +11,12 @@ import type {
   WebsiteUpdate,
   NotificationPreference,
   NotificationPreferenceUpdate,
+  AuthUser,
+  AccessTokenResponse,
+  RegisterPayload
 } from "../types/dashboard";
+
+
 
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL ??
@@ -20,19 +26,42 @@ async function fetchJson<T>(
   path: string,
   options?: RequestInit,
 ): Promise<T> {
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    ...options,
-    headers: {
-      "Content-Type": "application/json",
-      ...options?.headers,
+  const headers = new Headers(
+    options?.headers,
+  );
+
+  if (!headers.has("Content-Type")) {
+    headers.set(
+      "Content-Type",
+      "application/json",
+    );
+  }
+
+  const token = getStoredToken();
+
+  if (token) {
+    headers.set(
+      "Authorization",
+      `Bearer ${token}`,
+    );
+  }
+
+  const response = await fetch(
+    `${API_BASE_URL}${path}`,
+    {
+      ...options,
+      headers,
     },
-  });
+  );
 
   if (!response.ok) {
-    let message = `Request failed with status ${response.status}`;
+    let message =
+      `Request failed with status ${response.status}`;
 
     try {
-      const errorData = (await response.json()) as {
+      const errorData = (
+        await response.json()
+      ) as {
         detail?: string;
       };
 
@@ -40,7 +69,7 @@ async function fetchJson<T>(
         message = errorData.detail;
       }
     } catch {
-      // The response did not contain JSON.
+      // Response did not contain JSON.
     }
 
     throw new Error(message);
@@ -208,4 +237,43 @@ export async function downloadWebsiteReport(
   anchor.remove();
 
   window.URL.revokeObjectURL(downloadUrl);
+}
+
+export function registerUser(
+  payload: RegisterPayload,
+): Promise<AuthUser> {
+  return fetchJson<AuthUser>(
+    "/auth/register",
+    {
+      method: "POST",
+      body: JSON.stringify(payload),
+    },
+  );
+}
+
+export function loginUser(
+  email: string,
+  password: string,
+): Promise<AccessTokenResponse> {
+  const formData = new URLSearchParams();
+
+  formData.set("username", email);
+  formData.set("password", password);
+
+  return fetchJson<AccessTokenResponse>(
+    "/auth/login",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type":
+          "application/x-www-form-urlencoded",
+      },
+      body: formData,
+    },
+  );
+}
+
+export function getCurrentUser():
+Promise<AuthUser> {
+  return fetchJson<AuthUser>("/auth/me");
 }

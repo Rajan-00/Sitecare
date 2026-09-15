@@ -5,6 +5,7 @@ import {
   ChartNoAxesCombined,
   CircleUserRound,
   LayoutDashboard,
+  LogOut,
   PlusCircle,
   Settings,
   ShieldCheck,
@@ -14,7 +15,10 @@ import {
 import {
   Link,
   NavLink,
+  useNavigate,
 } from "react-router-dom";
+
+import { useAuth } from "../context/AuthContext";
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -33,6 +37,29 @@ function getNavigationClass({
 export function AppLayout({
   children,
 }: AppLayoutProps) {
+  const navigate = useNavigate();
+
+  const {
+    user,
+    logout,
+  } = useAuth();
+
+  function handleLogout(): void {
+    logout();
+    navigate("/login", {
+      replace: true,
+    });
+  }
+
+  const initials =
+    user?.full_name
+      .split(" ")
+      .filter(Boolean)
+      .map((part) => part[0])
+      .join("")
+      .slice(0, 2)
+      .toUpperCase() ?? "US";
+
   return (
     <div className="app-shell">
       <aside className="sidebar">
@@ -93,12 +120,12 @@ export function AppLayout({
             Maintenance
           </NavLink>
 
-         <NavLink
+          <NavLink
             className={getNavigationClass}
             to="/analytics"
-        >
-          <ChartNoAxesCombined size={19} />
-          Analytics
+          >
+            <ChartNoAxesCombined size={19} />
+            Analytics
           </NavLink>
 
           <p className="sidebar__label sidebar__label--second">
@@ -111,18 +138,35 @@ export function AppLayout({
           >
             <Settings size={19} />
             Settings
-            </NavLink>
-            </nav>
+          </NavLink>
+        </nav>
 
         <div className="sidebar__footer">
           <div className="user-avatar">
-            RR
+            {initials}
           </div>
 
-          <div>
-            <strong>Rajan Rawal</strong>
-            <span>Administrator</span>
+          <div className="sidebar-user">
+            <strong>
+              {user?.full_name ??
+                "SiteCare User"}
+            </strong>
+
+            <span>
+              {user?.email ??
+                "Authenticated user"}
+            </span>
           </div>
+
+          <button
+            className="logout-button"
+            type="button"
+            onClick={handleLogout}
+            aria-label="Sign out"
+            title="Sign out"
+          >
+            <LogOut size={17} />
+          </button>
         </div>
       </aside>
 
@@ -133,29 +177,32 @@ export function AppLayout({
               Monitoring workspace
             </p>
 
-            <h1>Website health dashboard</h1>
+            <h1>
+              Website health dashboard
+            </h1>
           </div>
 
           <div className="topbar__actions">
-            
             <Link
-               className="icon-button"
-               to="/settings"
-                aria-label="Notification settings"
-                title="Notification settings"
+              className="icon-button"
+              to="/settings"
+              aria-label="Notification settings"
+              title="Notification settings"
             >
               <Bell size={20} />
               <span className="notification-dot" />
             </Link>
 
-            <button
+            <div
               className="profile-button"
-              type="button"
               aria-label="User profile"
-              title="User profile"
+              title={
+                user?.full_name ??
+                "User profile"
+              }
             >
               <CircleUserRound size={21} />
-            </button>
+            </div>
           </div>
         </header>
 

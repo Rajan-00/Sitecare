@@ -131,3 +131,23 @@ export interface NotificationPreferenceUpdate {
   notify_on_recovery: boolean;
   notify_on_anomaly: boolean;
 }
+export interface AuthUser {
+  id: number;
+  full_name: string;
+  email: string;
+  is_active: boolean;
+  created_at: string;
+}
+
+export interface AccessTokenResponse {
+  access_token: string;
+  token_type: string;
+  expires_in: number;
+  user: AuthUser;
+}
+
+export interface RegisterPayload {
+  full_name: string;
+  email: string;
+  password: string;
+}
