@@ -128,3 +128,14 @@ export async function deleteWebsite(
 export function getIncidents(): Promise<Incident[]> {
   return fetchJson<Incident[]>("/incidents?limit=100");
 }
+export function getAnomalies(
+  websiteId?: number,
+): Promise<MonitorCheck[]> {
+  const query = websiteId
+    ? `?website_id=${websiteId}&limit=100`
+    : "?limit=100";
+
+  return fetchJson<MonitorCheck[]>(
+    `/anomalies${query}`,
+  );
+}

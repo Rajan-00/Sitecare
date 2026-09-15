@@ -3,7 +3,7 @@ import {
   Activity,
   Bell,
   BrainCircuit,
-  ChartNoAxesCombined,
+
   CircleUserRound,
   LayoutDashboard,
   PlusCircle,
@@ -87,16 +87,13 @@ export function AppLayout({
             Websites
           </a>
 
-          <span
-            className="
-              navigation-item
-              navigation-item--disabled
-            "
-            title="Analytics will be added in a future phase."
-          >
-            <ChartNoAxesCombined size={19} />
-            Analytics
-          </span>
+         <NavLink
+  className={getNavigationClass}
+  to="/ai-insights"
+>
+  <BrainCircuit size={19} />
+  AI Insights
+</NavLink>
 
           <span
             className="

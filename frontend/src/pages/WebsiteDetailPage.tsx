@@ -15,6 +15,7 @@ import {
   ShieldCheck,
   TriangleAlert,
   Settings,
+  Sparkles,
 } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
 
@@ -332,6 +333,7 @@ export function WebsiteDetailPage() {
                   <th>Status</th>
                   <th>HTTP code</th>
                   <th>Response time</th>
+                  <th>AI analysis</th>
                   <th>Checked URL</th>
                   <th>Error</th>
                   <th>Checked at</th>
@@ -358,6 +360,29 @@ export function WebsiteDetailPage() {
                         check.response_time_ms,
                       )}
                     </td>
+
+                    <td>
+  {check.is_anomaly ? (
+    <span
+      className="anomaly-badge"
+      title={
+        check.anomaly_reason ??
+        "Unusual response time detected."
+      }
+    >
+      <Sparkles size={13} />
+      Anomaly
+    </span>
+  ) : check.anomaly_score !== null ? (
+    <span className="normal-badge">
+      Normal
+    </span>
+  ) : (
+    <span className="analysis-pending">
+      Learning
+    </span>
+  )}
+</td>
 
                     <td>
                       <a

@@ -11,6 +11,7 @@ import { DashboardPage } from "./pages/DashboardPage";
 import { EditWebsitePage } from "./pages/EditWebsitePage";
 import { WebsiteDetailPage } from "./pages/WebsiteDetailPage";
 import { IncidentsPage } from "./pages/IncidentsPage";
+import { AIInsightsPage } from "./pages/AIInsightsPage";
 
 function App() {
   return (
@@ -42,6 +43,11 @@ function App() {
           <Route
             path="/incidents"
             element={<IncidentsPage />}
+          />
+
+          <Route
+            path="/ai-insights"
+            element={<AIInsightsPage />}
           />
 
 
