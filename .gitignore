@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+build/
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Databases
+*.db
+*.sqlite3
+
+# Frontend
+node_modules/
+dist/
+*.tsbuildinfo
+
+# macOS and editors
+.DS_Store
+.idea/
+.vscode/
