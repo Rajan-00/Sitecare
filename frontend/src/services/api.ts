@@ -8,6 +8,8 @@ import type {
   WebsiteMetric,
   WebsiteStatusResponse,
   WebsiteUpdate,
+  NotificationPreference,
+  NotificationPreferenceUpdate,
 } from "../types/dashboard";
 
 const API_BASE_URL =
@@ -153,5 +155,23 @@ export function getWebsiteMaintenancePrediction(
 ): Promise<MaintenancePrediction> {
   return fetchJson<MaintenancePrediction>(
     `/predictions/maintenance/${websiteId}`,
+  );
+}
+export function getNotificationSettings():
+Promise<NotificationPreference> {
+  return fetchJson<NotificationPreference>(
+    "/notifications/settings",
+  );
+}
+
+export function updateNotificationSettings(
+  payload: NotificationPreferenceUpdate,
+): Promise<NotificationPreference> {
+  return fetchJson<NotificationPreference>(
+    "/notifications/settings",
+    {
+      method: "PUT",
+      body: JSON.stringify(payload),
+    },
   );
 }

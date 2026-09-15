@@ -105,14 +105,14 @@ export function AppLayout({
             System
           </p>
 
-          <span
-            className="navigation-item navigation-item--disabled"
-            title="Settings will be added in a future phase."
+          <NavLink
+            className={getNavigationClass}
+            to="/settings"
           >
             <Settings size={19} />
             Settings
-          </span>
-        </nav>
+            </NavLink>
+            </nav>
 
         <div className="sidebar__footer">
           <div className="user-avatar">
@@ -137,15 +137,16 @@ export function AppLayout({
           </div>
 
           <div className="topbar__actions">
-            <button
-              className="icon-button"
-              type="button"
-              aria-label="Notifications"
-              title="Notifications"
+            
+            <Link
+               className="icon-button"
+               to="/settings"
+                aria-label="Notification settings"
+                title="Notification settings"
             >
               <Bell size={20} />
               <span className="notification-dot" />
-            </button>
+            </Link>
 
             <button
               className="profile-button"

@@ -111,3 +111,23 @@ export interface MaintenancePrediction {
   anomaly_rate_percentage: number;
   recommendation: string;
 }
+
+export interface NotificationPreference {
+  id: number;
+  email_address: string;
+  is_enabled: boolean;
+  notify_on_downtime: boolean;
+  notify_on_recovery: boolean;
+  notify_on_anomaly: boolean;
+  smtp_configured: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface NotificationPreferenceUpdate {
+  email_address: string;
+  is_enabled: boolean;
+  notify_on_downtime: boolean;
+  notify_on_recovery: boolean;
+  notify_on_anomaly: boolean;
+}

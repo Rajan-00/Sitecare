@@ -14,6 +14,7 @@ import { IncidentsPage } from "./pages/IncidentsPage";
 import { AIInsightsPage } from "./pages/AIInsightsPage";
 import { MaintenancePage } from "./pages/MaintenancePage";
 import { AnalyticsPage } from "./pages/AnalyticsPage";
+import { SettingsPage } from "./pages/SettingsPage";
 
 function App() {
   return (
@@ -60,6 +61,11 @@ function App() {
            path="/analytics"
            element={<AnalyticsPage />}
           /> 
+
+          <Route
+            path="/settings"
+            element={<SettingsPage />}
+            />
 
 
 
