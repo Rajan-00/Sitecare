@@ -6,12 +6,29 @@ import {
   ChartNoAxesCombined,
   CircleUserRound,
   LayoutDashboard,
+  PlusCircle,
   Settings,
   ShieldCheck,
 } from "lucide-react";
+import {
+  Link,
+  NavLink,
+} from "react-router-dom";
 
 interface AppLayoutProps {
   children: ReactNode;
+}
+
+function getNavigationClass({
+  isActive,
+}: {
+  isActive: boolean;
+}): string {
+  if (isActive) {
+    return "navigation-item navigation-item--active";
+  }
+
+  return "navigation-item";
 }
 
 export function AppLayout({
@@ -20,7 +37,7 @@ export function AppLayout({
   return (
     <div className="app-shell">
       <aside className="sidebar">
-        <div className="brand">
+        <Link className="brand" to="/">
           <div className="brand__icon">
             <ShieldCheck size={24} />
           </div>
@@ -29,39 +46,79 @@ export function AppLayout({
             <strong>SiteCare AI</strong>
             <span>Health Intelligence</span>
           </div>
-        </div>
+        </Link>
 
         <nav className="sidebar__navigation">
-          <p className="sidebar__label">Workspace</p>
+          <p className="sidebar__label">
+            Workspace
+          </p>
 
-          <a className="navigation-item navigation-item--active" href="/">
+          <NavLink
+            className={getNavigationClass}
+            end
+            to="/"
+          >
             <LayoutDashboard size={19} />
             Dashboard
-          </a>
+          </NavLink>
 
-          <a className="navigation-item" href="#websites">
+          <NavLink
+            className={getNavigationClass}
+            to="/websites/new"
+          >
+            <PlusCircle size={19} />
+            Add website
+          </NavLink>
+
+          <a
+            className="navigation-item"
+            href="#websites"
+          >
             <Activity size={19} />
             Websites
           </a>
 
-          <a className="navigation-item" href="#analytics">
+          <span
+            className="
+              navigation-item
+              navigation-item--disabled
+            "
+            title="Analytics will be added in a future phase."
+          >
             <ChartNoAxesCombined size={19} />
             Analytics
-          </a>
+          </span>
 
-          <a className="navigation-item" href="#ai-insights">
+          <span
+            className="
+              navigation-item
+              navigation-item--disabled
+            "
+            title="AI insights will be added in a future phase."
+          >
             <BrainCircuit size={19} />
             AI Insights
-          </a>
+          </span>
 
-          <p className="sidebar__label sidebar__label--second">
+          <p
+            className="
+              sidebar__label
+              sidebar__label--second
+            "
+          >
             System
           </p>
 
-          <a className="navigation-item" href="#settings">
+          <span
+            className="
+              navigation-item
+              navigation-item--disabled
+            "
+            title="Settings will be added in a future phase."
+          >
             <Settings size={19} />
             Settings
-          </a>
+          </span>
         </nav>
 
         <div className="sidebar__footer">
@@ -80,6 +137,7 @@ export function AppLayout({
             <p className="topbar__eyebrow">
               Monitoring workspace
             </p>
+
             <h1>Website health dashboard</h1>
           </div>
 
@@ -88,6 +146,7 @@ export function AppLayout({
               className="icon-button"
               type="button"
               aria-label="Notifications"
+              title="Notifications"
             >
               <Bell size={20} />
               <span className="notification-dot" />
@@ -97,13 +156,16 @@ export function AppLayout({
               className="profile-button"
               type="button"
               aria-label="User profile"
+              title="User profile"
             >
               <CircleUserRound size={21} />
             </button>
           </div>
         </header>
 
-        <div className="page-content">{children}</div>
+        <div className="page-content">
+          {children}
+        </div>
       </main>
     </div>
   );

@@ -12,6 +12,40 @@ export interface DashboardSummary {
 
 export type WebsiteStatus = "up" | "down" | "not_checked";
 
+export interface Website {
+  id: number;
+  name: string;
+  url: string;
+  check_interval_minutes: number;
+  is_active: boolean;
+  created_at: string;
+}
+
+export interface WebsiteCreate {
+  name: string;
+  url: string;
+  check_interval_minutes: number;
+}
+
+export interface MonitorCheck {
+  id: number;
+  website_id: number;
+  status_code: number | null;
+  response_time_ms: number | null;
+  is_up: boolean;
+  error_message: string | null;
+  checked_url: string;
+  checked_at: string;
+}
+
+export interface WebsiteStatusResponse {
+  website_id: number;
+  website_name: string;
+  website_url: string;
+  current_status: WebsiteStatus;
+  latest_check: MonitorCheck | null;
+}
+
 export interface WebsiteMetric {
   website_id: number;
   website_name: string;

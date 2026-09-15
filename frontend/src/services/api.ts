@@ -1,6 +1,10 @@
 import type {
   DashboardSummary,
+  MonitorCheck,
+  Website,
+  WebsiteCreate,
   WebsiteMetric,
+  WebsiteStatusResponse,
 } from "../types/dashboard";
 
 const API_BASE_URL =
@@ -12,11 +16,11 @@ async function fetchJson<T>(
   options?: RequestInit,
 ): Promise<T> {
   const response = await fetch(`${API_BASE_URL}${path}`, {
+    ...options,
     headers: {
       "Content-Type": "application/json",
       ...options?.headers,
     },
-    ...options,
   });
 
   if (!response.ok) {
@@ -31,7 +35,7 @@ async function fetchJson<T>(
         message = errorData.detail;
       }
     } catch {
-      // The server did not return JSON.
+      // The response did not contain JSON.
     }
 
     throw new Error(message);
@@ -46,4 +50,47 @@ export function getDashboardSummary(): Promise<DashboardSummary> {
 
 export function getWebsiteMetrics(): Promise<WebsiteMetric[]> {
   return fetchJson<WebsiteMetric[]>("/dashboard/websites");
+}
+
+export function createWebsite(
+  payload: WebsiteCreate,
+): Promise<Website> {
+  return fetchJson<Website>("/websites", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export function getWebsite(
+  websiteId: number,
+): Promise<Website> {
+  return fetchJson<Website>(`/websites/${websiteId}`);
+}
+
+export function getWebsiteStatus(
+  websiteId: number,
+): Promise<WebsiteStatusResponse> {
+  return fetchJson<WebsiteStatusResponse>(
+    `/monitoring/websites/${websiteId}/status`,
+  );
+}
+
+export function getWebsiteChecks(
+  websiteId: number,
+  limit = 50,
+): Promise<MonitorCheck[]> {
+  return fetchJson<MonitorCheck[]>(
+    `/monitoring/websites/${websiteId}/checks?limit=${limit}`,
+  );
+}
+
+export function runWebsiteCheck(
+  websiteId: number,
+): Promise<MonitorCheck> {
+  return fetchJson<MonitorCheck>(
+    `/monitoring/websites/${websiteId}/check`,
+    {
+      method: "POST",
+    },
+  );
 }

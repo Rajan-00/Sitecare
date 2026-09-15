@@ -1,12 +1,18 @@
-import { useCallback, useEffect, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useState,
+} from "react";
 import {
   Activity,
   Clock3,
   Globe2,
+  Plus,
   RefreshCw,
   ShieldAlert,
   Wifi,
 } from "lucide-react";
+import { Link } from "react-router-dom";
 
 import { StatCard } from "../components/StatCard";
 import { StatusBadge } from "../components/StatusBadge";
@@ -39,6 +45,7 @@ function formatLastChecked(
   return new Intl.DateTimeFormat("en", {
     month: "short",
     day: "numeric",
+    year: "numeric",
     hour: "numeric",
     minute: "2-digit",
   }).format(new Date(value));
@@ -117,6 +124,7 @@ export function DashboardPage() {
           className="spin-animation"
           size={28}
         />
+
         <p>Loading website health data...</p>
       </div>
     );
@@ -129,6 +137,7 @@ export function DashboardPage() {
 
         <div>
           <h2>Dashboard unavailable</h2>
+
           <p>
             {error ??
               "The dashboard response was empty."}
@@ -156,32 +165,49 @@ export function DashboardPage() {
           </div>
 
           <p>
-            Monitor uptime, performance, and service
-            health from one workspace.
+            Monitor uptime, performance, incidents, and
+            website health from one workspace.
           </p>
         </div>
 
-        <button
-          className="secondary-button"
-          type="button"
-          disabled={isRefreshing}
-          onClick={() => void loadDashboard(true)}
-        >
-          <RefreshCw
-            className={
-              isRefreshing ? "spin-animation" : ""
-            }
-            size={17}
-          />
-          {isRefreshing ? "Refreshing" : "Refresh data"}
-        </button>
+        <div className="dashboard-actions">
+          <button
+            className="secondary-button"
+            type="button"
+            disabled={isRefreshing}
+            onClick={() => void loadDashboard(true)}
+          >
+            <RefreshCw
+              className={
+                isRefreshing
+                  ? "spin-animation"
+                  : ""
+              }
+              size={17}
+            />
+
+            {isRefreshing
+              ? "Refreshing"
+              : "Refresh data"}
+          </button>
+
+          <Link
+            className="primary-button"
+            to="/websites/new"
+          >
+            <Plus size={17} />
+            Add website
+          </Link>
+        </div>
       </section>
 
       <section className="statistics-grid">
         <StatCard
           title="Total websites"
           value={String(summary.total_websites)}
-          description={`${summary.active_websites} currently active`}
+          description={
+            `${summary.active_websites} currently active`
+          }
           icon={<Globe2 size={22} />}
           tone="blue"
         />
@@ -189,7 +215,9 @@ export function DashboardPage() {
         <StatCard
           title="Operational"
           value={String(summary.websites_up)}
-          description={`${summary.overall_uptime_percentage}% overall uptime`}
+          description={
+            `${summary.overall_uptime_percentage}% overall uptime`
+          }
           icon={<Wifi size={22} />}
           tone="green"
         />
@@ -197,7 +225,9 @@ export function DashboardPage() {
         <StatCard
           title="Incidents"
           value={String(summary.total_incidents)}
-          description={`${summary.websites_down} currently down`}
+          description={
+            `${summary.websites_down} currently down`
+          }
           icon={<ShieldAlert size={22} />}
           tone="red"
         />
@@ -207,7 +237,9 @@ export function DashboardPage() {
           value={formatResponseTime(
             summary.average_response_time_ms,
           )}
-          description={`${summary.total_checks} checks completed`}
+          description={
+            `${summary.total_checks} checks completed`
+          }
           icon={<Clock3 size={22} />}
           tone="purple"
         />
@@ -221,6 +253,7 @@ export function DashboardPage() {
           <div>
             <div className="panel-heading__title">
               <Activity size={20} />
+
               <h2>Website health</h2>
             </div>
 
@@ -231,18 +264,31 @@ export function DashboardPage() {
           </div>
 
           <span className="record-count">
-            {websites.length} websites
+            {websites.length}{" "}
+            {websites.length === 1
+              ? "website"
+              : "websites"}
           </span>
         </div>
 
         {websites.length === 0 ? (
           <div className="empty-state">
             <Globe2 size={36} />
+
             <h3>No websites registered</h3>
+
             <p>
-              Add your first website through the API to
-              begin monitoring.
+              Add your first website to begin uptime
+              and performance monitoring.
             </p>
+
+            <Link
+              className="primary-button empty-state__button"
+              to="/websites/new"
+            >
+              <Plus size={17} />
+              Add first website
+            </Link>
           </div>
         ) : (
           <div className="table-wrapper">
@@ -269,9 +315,14 @@ export function DashboardPage() {
                         </div>
 
                         <div>
-                          <strong>
+                          <Link
+                            className="website-name-link"
+                            to={
+                              `/websites/${website.website_id}`
+                            }
+                          >
                             {website.website_name}
-                          </strong>
+                          </Link>
 
                           <a
                             href={website.website_url}
@@ -286,7 +337,9 @@ export function DashboardPage() {
 
                     <td>
                       <StatusBadge
-                        status={website.current_status}
+                        status={
+                          website.current_status
+                        }
                       />
                     </td>
 
@@ -298,7 +351,10 @@ export function DashboardPage() {
                               website.health_score,
                             )}
                             style={{
-                              width: `${website.health_score}%`,
+                              width: `${Math.min(
+                                website.health_score,
+                                100,
+                              )}%`,
                             }}
                           />
                         </div>
