@@ -248,8 +248,13 @@ def calculate_maintenance_prediction(
 
 def build_maintenance_predictions(
     database: Session,
+    user_id: int,
 ) -> list[MaintenancePredictionResponse]:
-    websites = list(database.scalars(select(Website).order_by(Website.name)).all())
+    websites = list(
+        database.scalars(
+            select(Website).where(Website.user_id == user_id).order_by(Website.name)
+        ).all()
+    )
 
     predictions: list[MaintenancePredictionResponse] = []
 

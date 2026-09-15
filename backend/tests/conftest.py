@@ -57,7 +57,7 @@ def override_get_current_user() -> User:
     return User(
         id=999,
         full_name="Test Administrator",
-        email="test@sitecare.local",
+        email="test@sitecare.com",
         hashed_password="not-used-in-tests",
         is_active=True,
         created_at=datetime.now(UTC),

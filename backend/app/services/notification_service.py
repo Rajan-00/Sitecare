@@ -4,6 +4,7 @@ import smtplib
 import ssl
 from email.message import EmailMessage
 
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
@@ -119,11 +120,12 @@ async def send_monitoring_notification(
     check: MonitorCheck,
     incident_event: str | None,
 ) -> None:
-    preference = database.get(
-        NotificationPreference,
-        1,
-    )
 
+    if website.user_id is None:
+        return
+    preference = database.scalar(
+        select(NotificationPreference).where(NotificationPreference.user_id == website.user_id)
+    )
     if preference is None or not preference.is_enabled or not settings.smtp_configured:
         return
 

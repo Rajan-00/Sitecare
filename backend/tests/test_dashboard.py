@@ -1,5 +1,7 @@
 from fastapi.testclient import TestClient
+from sqlalchemy.orm import Session
 
+from app.models.website import Website
 from app.services.website_monitor import CheckResult
 
 
@@ -171,3 +173,24 @@ def test_not_checked_website_metrics(
     assert website["uptime_percentage"] == 0.0
     assert website["total_checks"] == 0
     assert website["last_checked_at"] is None
+
+
+def test_dashboard_excludes_other_users_websites(
+    client: TestClient,
+    database: Session,
+) -> None:
+    other_website = Website(
+        user_id=500,
+        name="Private Website",
+        url="https://private.example.com/",
+        check_interval_minutes=5,
+        is_active=True,
+    )
+
+    database.add(other_website)
+    database.commit()
+
+    response = client.get("/api/v1/dashboard/summary")
+
+    assert response.status_code == 200
+    assert response.json()["total_websites"] == 0

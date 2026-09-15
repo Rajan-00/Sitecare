@@ -1,8 +1,9 @@
 from collections import defaultdict
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
+from app.models.incident import Incident
 from app.models.monitor_check import MonitorCheck
 from app.models.website import Website
 from app.schemas.dashboard import (
@@ -81,15 +82,31 @@ def get_current_status(
 
 def load_dashboard_data(
     database: Session,
-) -> tuple[list[Website], dict[int, list[MonitorCheck]]]:
-    websites_statement = select(Website).order_by(Website.id)
+    user_id: int,
+) -> tuple[
+    list[Website],
+    dict[int, list[MonitorCheck]],
+]:
+    websites_statement = select(Website).where(Website.user_id == user_id).order_by(Website.id)
 
-    checks_statement = select(MonitorCheck).order_by(MonitorCheck.checked_at)
+    checks_statement = (
+        select(MonitorCheck)
+        .join(
+            Website,
+            Website.id == MonitorCheck.website_id,
+        )
+        .where(Website.user_id == user_id)
+        .order_by(MonitorCheck.checked_at)
+    )
 
     websites = list(database.scalars(websites_statement).all())
+
     checks = list(database.scalars(checks_statement).all())
 
-    checks_by_website: dict[int, list[MonitorCheck]] = defaultdict(list)
+    checks_by_website: dict[
+        int,
+        list[MonitorCheck],
+    ] = defaultdict(list)
 
     for check in checks:
         checks_by_website[check.website_id].append(check)
@@ -99,8 +116,12 @@ def load_dashboard_data(
 
 def build_website_metrics(
     database: Session,
+    user_id: int,
 ) -> list[WebsiteMetricResponse]:
-    websites, checks_by_website = load_dashboard_data(database)
+    websites, checks_by_website = load_dashboard_data(
+        database,
+        user_id,
+    )
 
     metrics: list[WebsiteMetricResponse] = []
 
@@ -113,6 +134,7 @@ def build_website_metrics(
         latest_check = website_checks[-1] if website_checks else None
 
         successful_checks = sum(check.is_up for check in website_checks)
+
         failed_checks = len(website_checks) - successful_checks
 
         uptime_percentage = calculate_uptime(website_checks)
@@ -130,12 +152,12 @@ def build_website_metrics(
                 website_name=website.name,
                 website_url=website.url,
                 is_active=website.is_active,
-                current_status=get_current_status(latest_check),
+                current_status=(get_current_status(latest_check)),
                 health_score=health_score,
-                uptime_percentage=uptime_percentage,
+                uptime_percentage=(uptime_percentage),
                 average_response_time_ms=(average_response_time_ms),
                 total_checks=len(website_checks),
-                successful_checks=successful_checks,
+                successful_checks=(successful_checks),
                 failed_checks=failed_checks,
                 latest_status_code=(latest_check.status_code if latest_check else None),
                 last_checked_at=(latest_check.checked_at if latest_check else None),
@@ -147,8 +169,12 @@ def build_website_metrics(
 
 def build_dashboard_summary(
     database: Session,
+    user_id: int,
 ) -> DashboardSummaryResponse:
-    websites, checks_by_website = load_dashboard_data(database)
+    websites, checks_by_website = load_dashboard_data(
+        database,
+        user_id,
+    )
 
     all_checks = [
         check for website_checks in checks_by_website.values() for check in website_checks
@@ -175,16 +201,27 @@ def build_dashboard_summary(
         else:
             websites_not_checked += 1
 
-    total_incidents = sum(not check.is_up for check in all_checks)
+    total_incidents = (
+        database.scalar(
+            select(func.count())
+            .select_from(Incident)
+            .join(
+                Website,
+                Website.id == Incident.website_id,
+            )
+            .where(Website.user_id == user_id)
+        )
+        or 0
+    )
 
     return DashboardSummaryResponse(
         total_websites=len(websites),
         active_websites=sum(website.is_active for website in websites),
         websites_up=websites_up,
         websites_down=websites_down,
-        websites_not_checked=websites_not_checked,
+        websites_not_checked=(websites_not_checked),
         total_checks=len(all_checks),
         total_incidents=total_incidents,
-        overall_uptime_percentage=calculate_uptime(all_checks),
+        overall_uptime_percentage=(calculate_uptime(all_checks)),
         average_response_time_ms=(calculate_average_response_time(all_checks)),
     )

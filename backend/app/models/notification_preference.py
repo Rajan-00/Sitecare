@@ -3,6 +3,7 @@ from datetime import UTC, datetime
 from sqlalchemy import (
     Boolean,
     DateTime,
+    ForeignKey,
     Integer,
     String,
 )
@@ -17,7 +18,15 @@ class NotificationPreference(Base):
     id: Mapped[int] = mapped_column(
         Integer,
         primary_key=True,
-        default=1,
+        index=True,
+    )
+    user_id: Mapped[int | None] = mapped_column(
+        ForeignKey(
+            "users.id",
+            ondelete="CASCADE",
+        ),
+        nullable=True,
+        index=True,
     )
     email_address: Mapped[str] = mapped_column(
         String(320),

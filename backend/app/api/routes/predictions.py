@@ -1,17 +1,20 @@
 from fastapi import (
     APIRouter,
     Depends,
-    HTTPException,
-    status,
 )
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.api.dependencies import (
+    CurrentUserDependency,
+)
 from app.db.session import get_db
 from app.models.monitor_check import MonitorCheck
-from app.models.website import Website
 from app.schemas.maintenance import (
     MaintenancePredictionResponse,
+)
+from app.services.access_control import (
+    get_owned_website,
 )
 from app.services.maintenance_predictor import (
     build_maintenance_predictions,
@@ -26,33 +29,33 @@ router = APIRouter()
     response_model=list[MaintenancePredictionResponse],
 )
 def list_maintenance_predictions(
+    current_user: CurrentUserDependency,
     database: Session = Depends(get_db),
 ) -> list[MaintenancePredictionResponse]:
-    return build_maintenance_predictions(database)
+    return build_maintenance_predictions(
+        database,
+        current_user.id,
+    )
 
 
 @router.get(
     "/maintenance/{website_id}",
-    response_model=MaintenancePredictionResponse,
+    response_model=(MaintenancePredictionResponse),
 )
 def get_maintenance_prediction(
     website_id: int,
+    current_user: CurrentUserDependency,
     database: Session = Depends(get_db),
 ) -> MaintenancePredictionResponse:
-    website = database.get(
-        Website,
+    website = get_owned_website(
+        database,
+        current_user,
         website_id,
     )
 
-    if website is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Website not found.",
-        )
-
     statement = (
         select(MonitorCheck)
-        .where(MonitorCheck.website_id == website_id)
+        .where(MonitorCheck.website_id == website.id)
         .order_by(MonitorCheck.checked_at.desc())
         .limit(100)
     )
