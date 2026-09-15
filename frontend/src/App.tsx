@@ -10,6 +10,7 @@ import { AddWebsitePage } from "./pages/AddWebsitePage";
 import { DashboardPage } from "./pages/DashboardPage";
 import { EditWebsitePage } from "./pages/EditWebsitePage";
 import { WebsiteDetailPage } from "./pages/WebsiteDetailPage";
+import { IncidentsPage } from "./pages/IncidentsPage";
 
 function App() {
   return (
@@ -37,6 +38,15 @@ function App() {
             path="*"
             element={<Navigate replace to="/" />}
           />
+
+          <Route
+            path="/incidents"
+            element={<IncidentsPage />}
+          />
+
+
+
+
         </Routes>
       </AppLayout>
     </BrowserRouter>

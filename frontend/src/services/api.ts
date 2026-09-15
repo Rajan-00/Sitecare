@@ -6,6 +6,7 @@ import type {
   WebsiteMetric,
   WebsiteStatusResponse,
   WebsiteUpdate,
+  Incident,
 } from "../types/dashboard";
 
 const API_BASE_URL =
@@ -123,4 +124,7 @@ export async function deleteWebsite(
       `Delete failed with status ${response.status}`,
     );
   }
+}
+export function getIncidents(): Promise<Incident[]> {
+  return fetchJson<Incident[]>("/incidents?limit=100");
 }

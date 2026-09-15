@@ -9,6 +9,7 @@ import {
   PlusCircle,
   Settings,
   ShieldCheck,
+  TriangleAlert
 } from "lucide-react";
 import {
   Link,
@@ -68,6 +69,14 @@ export function AppLayout({
           >
             <PlusCircle size={19} />
             Add website
+          </NavLink>
+
+          <NavLink
+            className={getNavigationClass}
+            to="/incidents"
+          >
+          <TriangleAlert size={19} />
+           Incidents
           </NavLink>
 
           <a

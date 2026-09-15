@@ -10,6 +10,7 @@ from sqlalchemy.pool import StaticPool
 from app.db.base import Base
 from app.db.session import get_db
 from app.main import app
+from app.models.incident import Incident
 from app.models.monitor_check import MonitorCheck
 from app.models.website import Website
 
@@ -48,6 +49,7 @@ def client() -> TestClient:
 @pytest.fixture(autouse=True)
 def clean_database():
     with Session(test_engine) as database:
+        database.execute(delete(Incident))
         database.execute(delete(MonitorCheck))
         database.execute(delete(Website))
         database.commit()

@@ -10,6 +10,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.db.session import get_db
+from app.models.incident import Incident
 from app.models.monitor_check import MonitorCheck
 from app.models.website import Website
 from app.schemas.website import (
@@ -143,6 +144,7 @@ def delete_website(
         website_id,
         database,
     )
+    database.execute(delete(Incident).where(Incident.website_id == website.id))
 
     database.execute(delete(MonitorCheck).where(MonitorCheck.website_id == website.id))
 

@@ -71,3 +71,17 @@ export interface WebsiteMetric {
   latest_status_code: number | null;
   last_checked_at: string | null;
 }
+
+export interface Incident {
+  id: number;
+  website_id: number;
+  severity: "warning" | "critical";
+  cause: string | null;
+  first_status_code: number | null;
+  latest_status_code: number | null;
+  failure_count: number;
+  is_resolved: boolean;
+  started_at: string;
+  resolved_at: string | null;
+  duration_seconds: number | null;
+}
