@@ -5,10 +5,7 @@ from app.api.router import api_router
 
 app = FastAPI(
     title="SiteCare AI API",
-    description=(
-        "Website health monitoring, anomaly detection, "
-        "and predictive maintenance API"
-    ),
+    description=("Website health monitoring, anomaly detection, and predictive maintenance API"),
     version="0.1.0",
 )
 
