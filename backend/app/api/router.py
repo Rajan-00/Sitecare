@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 
 from app.api.routes.anomalies import router as anomalies_router
+from app.api.routes.auth import router as auth_router
 from app.api.routes.dashboard import router as dashboard_router
 from app.api.routes.health import router as health_router
 from app.api.routes.incidents import router as incidents_router
@@ -69,4 +70,9 @@ api_router.include_router(
     reports_router,
     prefix="/reports",
     tags=["Reports"],
+)
+api_router.include_router(
+    auth_router,
+    prefix="/auth",
+    tags=["Authentication"],
 )

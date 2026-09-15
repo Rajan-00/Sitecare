@@ -15,6 +15,7 @@ from app.models.monitor_check import MonitorCheck
 from app.models.notification_preference import (
     NotificationPreference,
 )
+from app.models.user import User
 from app.models.website import Website
 
 test_engine = create_engine(
@@ -57,6 +58,7 @@ def clean_database():
         database.execute(delete(Website))
         database.commit()
         database.execute(delete(NotificationPreference))
+        database.execute(delete(User))
         yield
 
 
