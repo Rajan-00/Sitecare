@@ -20,6 +20,7 @@ import { MaintenancePage } from "./pages/MaintenancePage";
 import { RegisterPage } from "./pages/RegisterPage";
 import { SettingsPage } from "./pages/SettingsPage";
 import { WebsiteDetailPage } from "./pages/WebsiteDetailPage";
+import ProfilePage from "./pages/ProfilePage";
 
 function ProtectedLayout() {
   return (
@@ -97,6 +98,8 @@ function App() {
             path="*"
             element={<Navigate replace to="/" />}
           />
+          <Route path="profile" element={<ProfilePage />} />
+          
         </Routes>
       </AuthProvider>
     </BrowserRouter>
