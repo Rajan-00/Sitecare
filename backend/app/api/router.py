@@ -1,5 +1,6 @@
 from fastapi import APIRouter
 
+from app.api.routes.anomalies import router as anomalies_router
 from app.api.routes.dashboard import router as dashboard_router
 from app.api.routes.health import router as health_router
 from app.api.routes.incidents import router as incidents_router
@@ -35,4 +36,10 @@ api_router.include_router(
     incidents_router,
     prefix="/incidents",
     tags=["Incidents"],
+)
+
+api_router.include_router(
+    anomalies_router,
+    prefix="/anomalies",
+    tags=["Anomalies"],
 )

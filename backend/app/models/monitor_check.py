@@ -1,6 +1,14 @@
 from datetime import UTC, datetime
 
-from sqlalchemy import Boolean, DateTime, Float, ForeignKey, Integer, String, Text
+from sqlalchemy import (
+    Boolean,
+    DateTime,
+    Float,
+    ForeignKey,
+    Integer,
+    String,
+    Text,
+)
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.base import Base
@@ -38,6 +46,20 @@ class MonitorCheck(Base):
     checked_url: Mapped[str] = mapped_column(
         String(500),
         nullable=False,
+    )
+    is_anomaly: Mapped[bool] = mapped_column(
+        Boolean,
+        nullable=False,
+        default=False,
+        index=True,
+    )
+    anomaly_score: Mapped[float | None] = mapped_column(
+        Float,
+        nullable=True,
+    )
+    anomaly_reason: Mapped[str | None] = mapped_column(
+        Text,
+        nullable=True,
     )
     checked_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),

@@ -11,6 +11,9 @@ class MonitorCheckResponse(BaseModel):
     is_up: bool
     error_message: str | None
     checked_url: str
+    is_anomaly: bool
+    anomaly_score: float | None
+    anomaly_reason: str | None
     checked_at: datetime
 
     model_config = ConfigDict(from_attributes=True)

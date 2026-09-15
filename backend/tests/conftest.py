@@ -55,3 +55,13 @@ def clean_database():
         database.commit()
 
     yield
+
+
+@pytest.fixture
+def database():
+    database_session = TestingSessionLocal()
+
+    try:
+        yield database_session
+    finally:
+        database_session.close()

@@ -46,6 +46,9 @@ export interface MonitorCheck {
   error_message: string | null;
   checked_url: string;
   checked_at: string;
+  is_anomaly: boolean;
+  anomaly_score: number | null;
+  anomaly_reason: string | null;
 }
 
 export interface WebsiteStatusResponse {

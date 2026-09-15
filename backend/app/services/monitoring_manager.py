@@ -4,6 +4,9 @@ from sqlalchemy.orm import Session
 
 from app.models.monitor_check import MonitorCheck
 from app.models.website import Website
+from app.services.anomaly_detector import (
+    detect_check_anomaly,
+)
 from app.services.incident_manager import (
     update_incident_state,
 )
@@ -29,6 +32,15 @@ async def perform_and_store_check(
     try:
         database.add(monitor_check)
         database.flush()
+
+        anomaly_result = detect_check_anomaly(
+            database,
+            monitor_check,
+        )
+
+        monitor_check.is_anomaly = anomaly_result.is_anomaly
+        monitor_check.anomaly_score = anomaly_result.anomaly_score
+        monitor_check.anomaly_reason = anomaly_result.anomaly_reason
 
         update_incident_state(
             database,
