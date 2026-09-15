@@ -7,6 +7,8 @@ class Settings(BaseSettings):
     app_name: str = "SiteCare AI API"
     app_env: str = "development"
     database_url: str = "sqlite:///./sitecare.db"
+    scheduler_enabled: bool = True
+    scheduler_interval_seconds: int = 60
 
     model_config = SettingsConfigDict(
         env_file=".env",

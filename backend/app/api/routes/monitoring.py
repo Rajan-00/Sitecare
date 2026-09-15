@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+
 from app.db.session import get_db
 from app.models.monitor_check import MonitorCheck
 from app.models.website import Website
@@ -9,9 +10,24 @@ from app.schemas.monitor_check import (
     MonitorCheckResponse,
     WebsiteStatusResponse,
 )
-from app.services.website_monitor import check_website
+from app.services.monitoring_manager import perform_and_store_check
 
 router = APIRouter()
+
+
+def get_website_or_404(
+    website_id: int,
+    database: Session,
+) -> Website:
+    website = database.get(Website, website_id)
+
+    if website is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Website not found.",
+        )
+
+    return website
 
 
 @router.post(
@@ -23,13 +39,7 @@ async def run_website_check(
     website_id: int,
     database: Session = Depends(get_db),
 ) -> MonitorCheck:
-    website = database.get(Website, website_id)
-
-    if website is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Website not found.",
-        )
+    website = get_website_or_404(website_id, database)
 
     if not website.is_active:
         raise HTTPException(
@@ -37,22 +47,7 @@ async def run_website_check(
             detail="Website monitoring is disabled.",
         )
 
-    result = await check_website(website.url)
-
-    monitor_check = MonitorCheck(
-        website_id=website.id,
-        status_code=result.status_code,
-        response_time_ms=result.response_time_ms,
-        is_up=result.is_up,
-        error_message=result.error_message,
-        checked_url=result.checked_url,
-    )
-
-    database.add(monitor_check)
-    database.commit()
-    database.refresh(monitor_check)
-
-    return monitor_check
+    return await perform_and_store_check(database, website)
 
 
 @router.get(
@@ -64,13 +59,7 @@ def get_check_history(
     limit: int = Query(default=20, ge=1, le=100),
     database: Session = Depends(get_db),
 ) -> list[MonitorCheck]:
-    website = database.get(Website, website_id)
-
-    if website is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Website not found.",
-        )
+    get_website_or_404(website_id, database)
 
     statement = (
         select(MonitorCheck)
@@ -90,13 +79,7 @@ def get_website_status(
     website_id: int,
     database: Session = Depends(get_db),
 ) -> WebsiteStatusResponse:
-    website = database.get(Website, website_id)
-
-    if website is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Website not found.",
-        )
+    website = get_website_or_404(website_id, database)
 
     statement = (
         select(MonitorCheck)
