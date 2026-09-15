@@ -11,6 +11,9 @@ from app.api.routes.notifications import (
 from app.api.routes.predictions import (
     router as predictions_router,
 )
+from app.api.routes.reports import (
+    router as reports_router,
+)
 from app.api.routes.websites import router as websites_router
 
 api_router = APIRouter()
@@ -60,4 +63,10 @@ api_router.include_router(
     notifications_router,
     prefix="/notifications",
     tags=["Notifications"],
+)
+
+api_router.include_router(
+    reports_router,
+    prefix="/reports",
+    tags=["Reports"],
 )

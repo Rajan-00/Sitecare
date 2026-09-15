@@ -175,3 +175,37 @@ export function updateNotificationSettings(
     },
   );
 }
+export type ReportFormat = "pdf" | "csv";
+
+export async function downloadWebsiteReport(
+  websiteId: number,
+  format: ReportFormat,
+): Promise<void> {
+  const response = await fetch(
+    `${API_BASE_URL}/reports/websites/${websiteId}/${format}`,
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      `Report download failed with status ${response.status}`,
+    );
+  }
+
+  const blob = await response.blob();
+
+  const downloadUrl =
+    window.URL.createObjectURL(blob);
+
+  const anchor =
+    document.createElement("a");
+
+  anchor.href = downloadUrl;
+  anchor.download =
+    `sitecare-health-report.${format}`;
+
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+
+  window.URL.revokeObjectURL(downloadUrl);
+}

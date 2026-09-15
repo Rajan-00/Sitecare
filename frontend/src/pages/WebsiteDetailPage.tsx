@@ -16,11 +16,14 @@ import {
   TriangleAlert,
   Settings,
   Sparkles,
+  FileDown,
+  FileSpreadsheet,
 } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
 
 import { StatusBadge } from "../components/StatusBadge";
 import {
+  downloadWebsiteReport,
   getWebsite,
   getWebsiteChecks,
   getWebsiteStatus,
@@ -31,6 +34,8 @@ import type {
   Website,
   WebsiteStatusResponse,
 } from "../types/dashboard";
+
+
 
 function formatDate(value: string): string {
   return new Intl.DateTimeFormat("en", {
@@ -118,6 +123,25 @@ export function WebsiteDetailPage() {
       setIsChecking(false);
     }
   }
+
+  async function handleReportDownload(
+  format: "pdf" | "csv",
+) {
+  setError(null);
+
+  try {
+    await downloadWebsiteReport(
+      numericWebsiteId,
+      format,
+    );
+  } catch (requestError) {
+    setError(
+      requestError instanceof Error
+        ? requestError.message
+        : "Unable to download report.",
+    );
+  }
+}
 
   if (isLoading) {
     return (
@@ -213,6 +237,27 @@ export function WebsiteDetailPage() {
           ? "Checking"
           : "Check now"}
     </button>
+    <button
+  className="secondary-button"
+  type="button"
+  onClick={() =>
+    void handleReportDownload("csv")
+  }
+>
+  <FileSpreadsheet size={17} />
+  CSV
+</button>
+
+<button
+  className="secondary-button"
+  type="button"
+  onClick={() =>
+    void handleReportDownload("pdf")
+  }
+>
+  <FileDown size={17} />
+  PDF report
+</button>
   </div>
 </div>
 
