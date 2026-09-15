@@ -18,10 +18,26 @@ def register_user(
     return response.json()
 
 
-def test_register_user(
+def login_user(
     client: TestClient,
+) -> str:
+    response = client.post(
+        "/api/v1/auth/login",
+        data={
+            "username": "rajan@example.com",
+            "password": "StrongPassword123!",
+        },
+    )
+
+    assert response.status_code == 200
+
+    return response.json()["access_token"]
+
+
+def test_register_user(
+    unauthenticated_client: TestClient,
 ) -> None:
-    data = register_user(client)
+    data = register_user(unauthenticated_client)
 
     assert data["full_name"] == "Rajan Rawal"
     assert data["email"] == "rajan@example.com"
@@ -31,11 +47,11 @@ def test_register_user(
 
 
 def test_duplicate_email_is_rejected(
-    client: TestClient,
+    unauthenticated_client: TestClient,
 ) -> None:
-    register_user(client)
+    register_user(unauthenticated_client)
 
-    response = client.post(
+    response = unauthenticated_client.post(
         "/api/v1/auth/register",
         json={
             "full_name": "Another User",
@@ -48,11 +64,11 @@ def test_duplicate_email_is_rejected(
 
 
 def test_login_returns_access_token(
-    client: TestClient,
+    unauthenticated_client: TestClient,
 ) -> None:
-    register_user(client)
+    register_user(unauthenticated_client)
 
-    response = client.post(
+    response = unauthenticated_client.post(
         "/api/v1/auth/login",
         data={
             "username": "rajan@example.com",
@@ -71,11 +87,11 @@ def test_login_returns_access_token(
 
 
 def test_invalid_password_is_rejected(
-    client: TestClient,
+    unauthenticated_client: TestClient,
 ) -> None:
-    register_user(client)
+    register_user(unauthenticated_client)
 
-    response = client.post(
+    response = unauthenticated_client.post(
         "/api/v1/auth/login",
         data={
             "username": "rajan@example.com",
@@ -87,21 +103,13 @@ def test_invalid_password_is_rejected(
 
 
 def test_get_current_user(
-    client: TestClient,
+    unauthenticated_client: TestClient,
 ) -> None:
-    register_user(client)
+    register_user(unauthenticated_client)
 
-    login_response = client.post(
-        "/api/v1/auth/login",
-        data={
-            "username": "rajan@example.com",
-            "password": "StrongPassword123!",
-        },
-    )
+    access_token = login_user(unauthenticated_client)
 
-    access_token = login_response.json()["access_token"]
-
-    response = client.get(
+    response = unauthenticated_client.get(
         "/api/v1/auth/me",
         headers={"Authorization": (f"Bearer {access_token}")},
     )
@@ -111,8 +119,31 @@ def test_get_current_user(
 
 
 def test_me_requires_token(
-    client: TestClient,
+    unauthenticated_client: TestClient,
 ) -> None:
-    response = client.get("/api/v1/auth/me")
+    response = unauthenticated_client.get("/api/v1/auth/me")
 
     assert response.status_code == 401
+
+
+def test_protected_endpoint_requires_token(
+    unauthenticated_client: TestClient,
+) -> None:
+    response = unauthenticated_client.get("/api/v1/dashboard/summary")
+
+    assert response.status_code == 401
+
+
+def test_protected_endpoint_accepts_token(
+    unauthenticated_client: TestClient,
+) -> None:
+    register_user(unauthenticated_client)
+
+    access_token = login_user(unauthenticated_client)
+
+    response = unauthenticated_client.get(
+        "/api/v1/dashboard/summary",
+        headers={"Authorization": (f"Bearer {access_token}")},
+    )
+
+    assert response.status_code == 200

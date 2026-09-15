@@ -14,7 +14,9 @@ class Settings(BaseSettings):
     scheduler_enabled: bool = True
     scheduler_interval_seconds: int = 60
 
-    jwt_secret_key: str = "WVReaIYy2ROjz_bBZUdKFM2lDNXIsKtaeIUBALp9LWbbtaYwfcMGp1fz2jdvZqV0sZmulb_ZavKY4uHdv6LY5Q"
+    jwt_secret_key: str = (
+        "WVReaIYy2ROjz_bBZUdKFM2lDNXIsKtaeIUBALp9LWbbtaYwfcMGp1fz2jdvZqV0sZmulb_ZavKY4uHdv6LY5Q"
+    )
     jwt_algorithm: str = "HS256"
     access_token_expire_minutes: int = 60
 
@@ -44,4 +46,3 @@ def get_settings() -> Settings:
 settings = get_settings()
 
 # Authentication
-

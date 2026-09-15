@@ -144,10 +144,18 @@ export function updateWebsite(
 export async function deleteWebsite(
   websiteId: number,
 ): Promise<void> {
+  const token = getStoredToken();
+
   const response = await fetch(
     `${API_BASE_URL}/websites/${websiteId}`,
     {
       method: "DELETE",
+      headers: token
+        ? {
+            Authorization:
+              `Bearer ${token}`,
+          }
+        : undefined,
     },
   );
 
@@ -157,6 +165,7 @@ export async function deleteWebsite(
     );
   }
 }
+
 export function getIncidents(): Promise<Incident[]> {
   return fetchJson<Incident[]>("/incidents?limit=100");
 }
@@ -204,14 +213,26 @@ export function updateNotificationSettings(
     },
   );
 }
+
+
 export type ReportFormat = "pdf" | "csv";
 
 export async function downloadWebsiteReport(
   websiteId: number,
   format: ReportFormat,
 ): Promise<void> {
+  const token = getStoredToken();
+
   const response = await fetch(
     `${API_BASE_URL}/reports/websites/${websiteId}/${format}`,
+    {
+      headers: token
+        ? {
+            Authorization:
+              `Bearer ${token}`,
+          }
+        : undefined,
+    },
   );
 
   if (!response.ok) {
