@@ -105,15 +105,14 @@ def test_account_routes_require_authentication(unauthenticated_client):
 
     assert response.status_code == 401
 
+
 def test_get_account_statistics(
     unauthenticated_client,
 ):
-    headers = register_and_login(
-        unauthenticated_client
-    )
+    headers = register_and_login(unauthenticated_client)
 
     response = unauthenticated_client.get(
-        "/api/account/statistics",
+        "/api/v1/account/statistics",
         headers=headers,
     )
 

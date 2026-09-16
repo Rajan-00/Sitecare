@@ -125,6 +125,10 @@ function getPageTitle(pathname: string): string {
   return "Notifications";
 }
 
+if (pathname.startsWith("/notifications")) {
+  return "Notifications";
+}
+
   return "SiteCare AI";
 }
 
@@ -164,6 +168,10 @@ function getPageDescription(pathname: string): string {
   if (pathname.startsWith("/profile")) {
     return "Manage your SiteCare AI account.";
   }
+
+  if (pathname.startsWith("/notifications")) {
+  return "Review your latest monitoring and account alerts.";
+}
 
   return "Website monitoring and intelligence.";
 }
@@ -325,19 +333,24 @@ export default function AppLayout() {
           </div>
 
           <div className="header-actions">
-            <button
-              type="button"
-              className="notification-button"
-              aria-label="Notifications"
-              title="Notifications"
-            >
-              <Bell size={20} />
+            
+            <NavLink
+  to="/notifications"
+  className={({ isActive }) =>
+    isActive
+      ? "notification-button notification-button-active"
+      : "notification-button"
+  }
+  aria-label="Notifications"
+  title="Notifications"
+>
+  <Bell size={20} />
 
-              <span
-                className="notification-indicator"
-                aria-hidden="true"
-              />
-            </button>
+  <span
+    className="notification-indicator"
+    aria-hidden="true"
+  />
+</NavLink>
 
             <NavLink
               to="/profile"

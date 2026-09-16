@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from statistics import median
+from statistics import mean, pstdev
 
 from sklearn.ensemble import IsolationForest
 from sqlalchemy import select
@@ -9,7 +9,8 @@ from app.models.monitor_check import MonitorCheck
 
 MINIMUM_TRAINING_SAMPLES = 20
 TRAINING_HISTORY_LIMIT = 200
-ROBUST_Z_SCORE_THRESHOLD = 3.5
+ANOMALY_CONTAMINATION = 0.05
+STATISTICAL_THRESHOLD = 3.5
 
 
 @dataclass
@@ -20,103 +21,94 @@ class AnomalyResult:
     training_sample_count: int
 
 
-def calculate_statistical_anomaly(
-    historical_values: list[float],
-    current_value: float,
-) -> bool:
-    """Detect extreme values using median absolute deviation."""
-
-    historical_median = median(historical_values)
-
-    absolute_deviations = [abs(value - historical_median) for value in historical_values]
-
-    median_absolute_deviation = median(absolute_deviations)
-
-    if median_absolute_deviation > 0:
-        robust_z_score = 0.6745 * abs(current_value - historical_median) / median_absolute_deviation
-
-        return robust_z_score >= ROBUST_Z_SCORE_THRESHOLD
-
-    # Handle a completely stable history where every value is identical.
-    minimum_tolerance_ms = 50.0
-    percentage_tolerance = abs(historical_median) * 0.50
-
-    allowed_difference = max(
-        minimum_tolerance_ms,
-        percentage_tolerance,
-    )
-
-    return abs(current_value - historical_median) > allowed_difference
-
-
 def detect_anomaly_from_values(
     historical_values: list[float],
     current_value: float,
 ) -> AnomalyResult:
-    if len(historical_values) < MINIMUM_TRAINING_SAMPLES:
+    sample_count = len(historical_values)
+
+    if sample_count < MINIMUM_TRAINING_SAMPLES:
         return AnomalyResult(
             is_anomaly=False,
             anomaly_score=None,
             anomaly_reason=None,
-            training_sample_count=len(historical_values),
+            training_sample_count=sample_count,
         )
 
-    training_data = [[value] for value in historical_values]
+    training_data = [[float(value)] for value in historical_values]
 
     model = IsolationForest(
         n_estimators=100,
-        contamination=0.05,
+        contamination=ANOMALY_CONTAMINATION,
         random_state=42,
         n_jobs=1,
     )
 
     model.fit(training_data)
 
-    prediction = int(model.predict([[current_value]])[0])
+    prediction = int(model.predict([[float(current_value)]])[0])
 
-    decision_score = float(model.decision_function([[current_value]])[0])
+    decision_score = float(model.decision_function([[float(current_value)]])[0])
 
-    machine_learning_anomaly = prediction == -1
+    historical_average = mean(historical_values)
+    historical_deviation = pstdev(historical_values)
 
-    statistical_anomaly = calculate_statistical_anomaly(
-        historical_values=historical_values,
-        current_value=current_value,
-    )
+    difference = abs(float(current_value) - historical_average)
 
-    is_anomaly = machine_learning_anomaly or statistical_anomaly
+    if historical_deviation > 0:
+        deviation_score = difference / historical_deviation
 
-    historical_average = sum(historical_values) / len(historical_values)
-
-    if is_anomaly:
-        percentage_difference = (
-            (current_value - historical_average) / historical_average * 100
-            if historical_average > 0
-            else 0
+        statistical_anomaly = deviation_score >= STATISTICAL_THRESHOLD
+    else:
+        minimum_significant_difference = max(
+            historical_average * 0.5,
+            50.0,
         )
 
-        if current_value > historical_average:
+        deviation_score = difference / max(minimum_significant_difference, 1.0)
+
+        statistical_anomaly = difference >= minimum_significant_difference
+
+    isolation_forest_anomaly = prediction == -1
+
+    is_anomaly = isolation_forest_anomaly or statistical_anomaly
+
+    if statistical_anomaly and not isolation_forest_anomaly:
+        anomaly_score = -abs(deviation_score)
+    else:
+        anomaly_score = decision_score
+
+    reason: str | None = None
+
+    if is_anomaly:
+        if historical_average > 0:
+            percentage_difference = (
+                (float(current_value) - historical_average) / historical_average * 100
+            )
+        else:
+            percentage_difference = 0.0
+
+        if float(current_value) > historical_average:
             reason = (
                 "Response time is unusually slow: "
-                f"{current_value:.2f} ms compared with "
-                f"a historical average of "
+                f"{float(current_value):.2f} ms compared "
+                "with a historical average of "
                 f"{historical_average:.2f} ms "
                 f"({percentage_difference:.1f}% slower)."
             )
         else:
             reason = (
                 "Response time is unusually different: "
-                f"{current_value:.2f} ms compared with "
-                f"a historical average of "
+                f"{float(current_value):.2f} ms compared "
+                "with a historical average of "
                 f"{historical_average:.2f} ms."
             )
-    else:
-        reason = None
 
     return AnomalyResult(
         is_anomaly=is_anomaly,
-        anomaly_score=round(decision_score, 6),
+        anomaly_score=round(anomaly_score, 6),
         anomaly_reason=reason,
-        training_sample_count=len(historical_values),
+        training_sample_count=sample_count,
     )
 
 
@@ -140,7 +132,10 @@ def detect_check_anomaly(
             MonitorCheck.is_up.is_(True),
             MonitorCheck.response_time_ms.is_not(None),
         )
-        .order_by(MonitorCheck.checked_at.desc())
+        .order_by(
+            MonitorCheck.checked_at.desc(),
+            MonitorCheck.id.desc(),
+        )
         .limit(TRAINING_HISTORY_LIMIT)
     )
 
@@ -150,5 +145,5 @@ def detect_check_anomaly(
 
     return detect_anomaly_from_values(
         historical_values=historical_values,
-        current_value=check.response_time_ms,
+        current_value=float(check.response_time_ms),
     )

@@ -11,7 +11,7 @@ from sqlalchemy import func, select, update
 from sqlalchemy.orm import Session
 
 from app.api.dependencies import get_current_user
-from app.db.session import get_database
+from app.db.session import get_db
 from app.models.in_app_notification import InAppNotification
 from app.models.user import User
 from app.schemas.in_app_notification import (
@@ -56,7 +56,7 @@ def list_in_app_notifications(
     limit: int = Query(default=20, ge=1, le=100),
     offset: int = Query(default=0, ge=0),
     unread_only: bool = Query(default=False),
-    database: Session = Depends(get_database),
+    database: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
     notification_type: str | None = Query(default=None),
 ) -> InAppNotificationListResponse:
@@ -104,7 +104,7 @@ def list_in_app_notifications(
     response_model=UnreadCountResponse,
 )
 def get_unread_notification_count(
-    database: Session = Depends(get_database),
+    database: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> UnreadCountResponse:
     unread_count = database.scalar(
@@ -122,7 +122,7 @@ def get_unread_notification_count(
     response_model=NotificationMessageResponse,
 )
 def mark_all_notifications_as_read(
-    database: Session = Depends(get_database),
+    database: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> NotificationMessageResponse:
     current_time = datetime.now(UTC)
@@ -150,7 +150,7 @@ def mark_all_notifications_as_read(
 )
 def mark_notification_as_read(
     notification_id: int,
-    database: Session = Depends(get_database),
+    database: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> InAppNotification:
     notification = get_owned_notification(

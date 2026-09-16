@@ -3,10 +3,12 @@ from fastapi import (
     Depends,
 )
 
-from app.api.dependencies import (
-    get_current_user,
+from app.api.dependencies import get_current_user
+from app.api.routes import (
+    account,
+    audit_logs,
+    in_app_notifications,
 )
-from app.api.routes import account, audit_logs
 from app.api.routes.anomalies import (
     router as anomalies_router,
 )
@@ -51,11 +53,15 @@ api_router.include_router(
     prefix="/auth",
     tags=["Authentication"],
 )
+
+# These routers implement authentication on their own routes.
 api_router.include_router(account.router)
 api_router.include_router(audit_logs.router)
 
-# Every router included here requires a JWT.
-protected_router = APIRouter(dependencies=[Depends(get_current_user)])
+# Every router included here requires a valid JWT.
+protected_router = APIRouter(
+    dependencies=[Depends(get_current_user)],
+)
 
 protected_router.include_router(
     websites_router,
@@ -93,10 +99,17 @@ protected_router.include_router(
     tags=["Maintenance Predictions"],
 )
 
+# Email notification settings.
 protected_router.include_router(
     notifications_router,
     prefix="/notifications",
     tags=["Notifications"],
+)
+
+# In-app notification list, unread count and read actions.
+# This router already defines prefix="/notifications/in-app".
+protected_router.include_router(
+    in_app_notifications.router,
 )
 
 protected_router.include_router(

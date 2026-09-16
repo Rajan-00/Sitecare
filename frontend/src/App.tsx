@@ -8,6 +8,7 @@ import {
 import AppLayout from "./components/AppLayout";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { AuthProvider } from "./context/AuthContext";
+import ActivityPage  from "./pages/ActivityPage";
 import { AddWebsitePage } from "./pages/AddWebsitePage";
 import { AIInsightsPage } from "./pages/AIInsightsPage";
 import { AnalyticsPage } from "./pages/AnalyticsPage";
@@ -16,13 +17,13 @@ import { EditWebsitePage } from "./pages/EditWebsitePage";
 import { IncidentsPage } from "./pages/IncidentsPage";
 import { LoginPage } from "./pages/LoginPage";
 import { MaintenancePage } from "./pages/MaintenancePage";
+import NotFoundPage from "./pages/NotFoundPage";
+import NotificationsPage from "./pages/NotificationsPage";
+import ProfilePage from "./pages/ProfilePage";
 import { RegisterPage } from "./pages/RegisterPage";
 import { SettingsPage } from "./pages/SettingsPage";
 import { WebsiteDetailPage } from "./pages/WebsiteDetailPage";
-import ProfilePage from "./pages/ProfilePage";
-import ActivityPage from "./pages/ActivityPage";
-import NotificationsPage from "./pages/NotificationsPage";
-import NotFoundPage from "./pages/NotFoundPage";
+import { WebsitesPage } from "./pages/WebsitesPage";
 
 function ProtectedLayout() {
   return (
@@ -49,64 +50,85 @@ function App() {
 
           <Route element={<ProtectedLayout />}>
             <Route
-              path="/"
+              index
               element={<DashboardPage />}
             />
 
             <Route
-              path="/websites/new"
+              path="websites"
+              element={<WebsitesPage />}
+            />
+
+            <Route
+              path="websites/new"
               element={<AddWebsitePage />}
             />
 
             <Route
-              path="/websites/:websiteId"
+              path="websites/:websiteId"
               element={<WebsiteDetailPage />}
             />
 
             <Route
-              path="/websites/:websiteId/edit"
+              path="websites/:websiteId/edit"
               element={<EditWebsitePage />}
             />
 
             <Route
-              path="/incidents"
+              path="incidents"
               element={<IncidentsPage />}
             />
 
             <Route
-              path="/ai-insights"
+              path="anomalies"
               element={<AIInsightsPage />}
             />
 
             <Route
-              path="/maintenance"
+              path="ai-insights"
+              element={
+                <Navigate
+                  replace
+                  to="/anomalies"
+                />
+              }
+            />
+
+            <Route
+              path="maintenance"
               element={<MaintenancePage />}
             />
 
             <Route
-              path="/analytics"
+              path="analytics"
               element={<AnalyticsPage />}
             />
 
             <Route
-              path="/settings"
+              path="settings"
               element={<SettingsPage />}
             />
+
+            <Route
+              path="activity"
+              element={<ActivityPage />}
+            />
+
+            <Route
+              path="profile"
+              element={<ProfilePage />}
+            />
+
+            <Route
+              path="notifications"
+              element={<NotificationsPage />}
+            />
+
+            <Route
+              path="*"
+              element={<NotFoundPage />}
+            />
           </Route>
-
-          <Route
-            path="*"
-            element={<Navigate replace to="/" />}
-          />
-          <Route path="profile" element={<ProfilePage />} />
-          <Route path="/activity" element={<ActivityPage />} />
-          <Route path="/notifications" element={<NotificationsPage />} />
-          <Route path="*" element={<NotFoundPage />} />
-
-
-
-
-          
         </Routes>
       </AuthProvider>
     </BrowserRouter>
