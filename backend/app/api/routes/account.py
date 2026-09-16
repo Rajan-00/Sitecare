@@ -1,13 +1,18 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.api.dependencies import get_current_user
 from app.core.security import hash_password, verify_password
 from app.db.session import get_db
+from app.models.audit_log import AuditLog
+from app.models.incident import Incident
+from app.models.monitor_check import MonitorCheck
 from app.models.user import User
+from app.models.website import Website
 from app.schemas.account import (
+    AccountStatisticsResponse,
     MessageResponse,
     PasswordChange,
     ProfileUpdate,
@@ -126,3 +131,64 @@ def change_password(
     database.commit()
 
     return MessageResponse(message="Password changed successfully.")
+
+
+@router.get(
+    "/statistics",
+    response_model=AccountStatisticsResponse,
+)
+def get_account_statistics(
+    database: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> AccountStatisticsResponse:
+    total_websites = database.scalar(
+        select(func.count(Website.id)).where(Website.user_id == current_user.id)
+    )
+
+    active_websites = database.scalar(
+        select(func.count(Website.id)).where(
+            Website.user_id == current_user.id,
+            Website.is_active.is_(True),
+        )
+    )
+
+    total_health_checks = database.scalar(
+        select(func.count(MonitorCheck.id))
+        .join(
+            Website,
+            MonitorCheck.website_id == Website.id,
+        )
+        .where(Website.user_id == current_user.id)
+    )
+
+    total_incidents = database.scalar(
+        select(func.count(Incident.id))
+        .join(
+            Website,
+            Incident.website_id == Website.id,
+        )
+        .where(Website.user_id == current_user.id)
+    )
+
+    total_activities = database.scalar(
+        select(func.count(AuditLog.id)).where(AuditLog.user_id == current_user.id)
+    )
+
+    last_activity_at = database.scalar(
+        select(AuditLog.created_at)
+        .where(AuditLog.user_id == current_user.id)
+        .order_by(
+            AuditLog.created_at.desc(),
+            AuditLog.id.desc(),
+        )
+        .limit(1)
+    )
+
+    return AccountStatisticsResponse(
+        total_websites=total_websites or 0,
+        active_websites=active_websites or 0,
+        total_health_checks=total_health_checks or 0,
+        total_incidents=total_incidents or 0,
+        total_activities=total_activities or 0,
+        last_activity_at=last_activity_at,
+    )

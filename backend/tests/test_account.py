@@ -104,3 +104,26 @@ def test_account_routes_require_authentication(unauthenticated_client):
     response = unauthenticated_client.get("/api/v1/account/profile")
 
     assert response.status_code == 401
+
+def test_get_account_statistics(
+    unauthenticated_client,
+):
+    headers = register_and_login(
+        unauthenticated_client
+    )
+
+    response = unauthenticated_client.get(
+        "/api/account/statistics",
+        headers=headers,
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert data["total_websites"] == 0
+    assert data["active_websites"] == 0
+    assert data["total_health_checks"] == 0
+    assert data["total_incidents"] == 0
+    assert data["total_activities"] >= 0
+    assert "last_activity_at" in data
