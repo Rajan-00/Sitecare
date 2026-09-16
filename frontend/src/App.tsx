@@ -1,12 +1,11 @@
 import {
   BrowserRouter,
   Navigate,
-  Outlet,
   Route,
   Routes,
 } from "react-router-dom";
 
-import { AppLayout } from "./components/AppLayout";
+import AppLayout from "./components/AppLayout";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { AuthProvider } from "./context/AuthContext";
 import { AddWebsitePage } from "./pages/AddWebsitePage";
@@ -21,13 +20,12 @@ import { RegisterPage } from "./pages/RegisterPage";
 import { SettingsPage } from "./pages/SettingsPage";
 import { WebsiteDetailPage } from "./pages/WebsiteDetailPage";
 import ProfilePage from "./pages/ProfilePage";
+import ActivityPage from "./pages/ActivityPage";
 
 function ProtectedLayout() {
   return (
     <ProtectedRoute>
-      <AppLayout>
-        <Outlet />
-      </AppLayout>
+      <AppLayout />
     </ProtectedRoute>
   );
 }
@@ -99,6 +97,7 @@ function App() {
             element={<Navigate replace to="/" />}
           />
           <Route path="profile" element={<ProfilePage />} />
+          <Route path="/activity" element={<ActivityPage />} />
           
         </Routes>
       </AuthProvider>
