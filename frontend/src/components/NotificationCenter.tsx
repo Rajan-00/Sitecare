@@ -217,7 +217,7 @@ export default function NotificationCenter() {
       return;
     }
 
-    navigate("/activity");
+    navigate("/notifications");
   }
 
   async function handleMarkAllAsRead() {
@@ -402,7 +402,7 @@ export default function NotificationCenter() {
               type="button"
               onClick={() => {
                 setOpen(false);
-                navigate("/activity");
+                navigate("/notifications");
               }}
             >
               View account activity

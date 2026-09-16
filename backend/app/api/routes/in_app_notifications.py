@@ -10,8 +10,8 @@ from fastapi import (
 from sqlalchemy import func, select, update
 from sqlalchemy.orm import Session
 
+from app.api.dependencies import get_current_user
 from app.db.session import get_database
-from app.dependencies.auth import get_current_user
 from app.models.in_app_notification import InAppNotification
 from app.models.user import User
 from app.schemas.in_app_notification import (
@@ -58,11 +58,15 @@ def list_in_app_notifications(
     unread_only: bool = Query(default=False),
     database: Session = Depends(get_database),
     current_user: User = Depends(get_current_user),
+    notification_type: str | None = Query(default=None),
 ) -> InAppNotificationListResponse:
     conditions = [InAppNotification.user_id == current_user.id]
 
     if unread_only:
         conditions.append(InAppNotification.is_read.is_(False))
+
+    if notification_type:
+        conditions.append(InAppNotification.notification_type == notification_type)
 
     total = database.scalar(select(func.count(InAppNotification.id)).where(*conditions))
 

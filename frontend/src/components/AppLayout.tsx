@@ -121,6 +121,10 @@ function getPageTitle(pathname: string): string {
     return "Profile";
   }
 
+  if (pathname.startsWith("/notifications")) {
+  return "Notifications";
+}
+
   return "SiteCare AI";
 }
 

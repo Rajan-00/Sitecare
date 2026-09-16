@@ -78,3 +78,34 @@ export function markAllNotificationsAsRead():
     },
   );
 }
+
+export interface NotificationQuery {
+  limit?: number;
+  offset?: number;
+  unreadOnly?: boolean;
+  notificationType?: string;
+}
+
+export function getNotificationPage(
+  query: NotificationQuery = {},
+): Promise<InAppNotificationListResponse> {
+  const parameters = new URLSearchParams();
+
+  parameters.set("limit", String(query.limit ?? 10));
+  parameters.set("offset", String(query.offset ?? 0));
+
+  if (query.unreadOnly) {
+    parameters.set("unread_only", "true");
+  }
+
+  if (query.notificationType) {
+    parameters.set(
+      "notification_type",
+      query.notificationType,
+    );
+  }
+
+  return notificationRequest<InAppNotificationListResponse>(
+    `/notifications/in-app?${parameters.toString()}`,
+  );
+}
