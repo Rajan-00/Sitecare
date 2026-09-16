@@ -19,3 +19,12 @@ export interface PasswordChange {
 export interface MessageResponse {
   message: string;
 }
+
+export interface AccountStatistics {
+  total_websites: number;
+  active_websites: number;
+  total_health_checks: number;
+  total_incidents: number;
+  total_activities: number;
+  last_activity_at: string | null;
+}

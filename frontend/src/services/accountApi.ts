@@ -1,6 +1,7 @@
 import { getStoredToken } from "./authStorage";
 import type {
   AccountProfile,
+  AccountStatistics,
   MessageResponse,
   PasswordChange,
   ProfileUpdate,
@@ -63,4 +64,10 @@ export function changeAccountPassword(
     method: "POST",
     body: JSON.stringify(payload),
   });
+}
+
+export function getAccountStatistics(): Promise<AccountStatistics> {
+  return accountRequest<AccountStatistics>(
+    "/account/statistics",
+  );
 }

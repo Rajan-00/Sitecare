@@ -1,17 +1,30 @@
 import {
   type ChangeEvent,
   type FormEvent,
+  useCallback,
   useEffect,
   useState,
 } from "react";
+import {
+  Activity,
+  Clock3,
+  Globe2,
+  History,
+  KeyRound,
+  RefreshCw,
+  Siren,
+  UserRound,
+} from "lucide-react";
 
 import {
   changeAccountPassword,
   getAccountProfile,
+  getAccountStatistics,
   updateAccountProfile,
 } from "../services/accountApi";
 import type {
   AccountProfile,
+  AccountStatistics,
   PasswordChange,
   ProfileUpdate,
 } from "../types/account";
@@ -28,12 +41,25 @@ const initialPasswords: PasswordChange = {
   new_password: "",
 };
 
+function formatDate(dateValue: string): string {
+  return new Intl.DateTimeFormat(undefined, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(new Date(dateValue));
+}
+
 export default function ProfilePage() {
   const [profile, setProfile] =
     useState<ProfileUpdate>(initialProfile);
 
   const [account, setAccount] =
     useState<AccountProfile | null>(null);
+
+  const [statistics, setStatistics] =
+    useState<AccountStatistics | null>(null);
 
   const [passwords, setPasswords] =
     useState<PasswordChange>(initialPasswords);
@@ -43,38 +69,59 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
   const [savingProfile, setSavingProfile] = useState(false);
   const [savingPassword, setSavingPassword] = useState(false);
+  const [refreshingStatistics, setRefreshingStatistics] =
+    useState(false);
 
   const [profileError, setProfileError] = useState("");
   const [profileSuccess, setProfileSuccess] = useState("");
-
   const [passwordError, setPasswordError] = useState("");
   const [passwordSuccess, setPasswordSuccess] = useState("");
 
+  const loadStatistics = useCallback(async () => {
+    try {
+      setRefreshingStatistics(true);
+
+      const data = await getAccountStatistics();
+
+      setStatistics(data);
+    } catch {
+      // The profile can still work if statistics fail.
+    } finally {
+      setRefreshingStatistics(false);
+    }
+  }, []);
+
   useEffect(() => {
-    async function loadProfile() {
+    async function loadPage() {
       try {
         setLoading(true);
         setProfileError("");
 
-        const data = await getAccountProfile();
+        const [profileData, statisticsData] =
+          await Promise.all([
+            getAccountProfile(),
+            getAccountStatistics(),
+          ]);
 
-        setAccount(data);
+        setAccount(profileData);
+        setStatistics(statisticsData);
+
         setProfile({
-          full_name: data.full_name,
-          email: data.email,
+          full_name: profileData.full_name,
+          email: profileData.email,
         });
       } catch (error) {
         setProfileError(
           error instanceof Error
             ? error.message
-            : "Unable to load your profile.",
+            : "Unable to load your account.",
         );
       } finally {
         setLoading(false);
       }
     }
 
-    void loadProfile();
+    void loadPage();
   }, []);
 
   function handleProfileChange(
@@ -123,12 +170,15 @@ export default function ProfilePage() {
       });
 
       setAccount(updatedProfile);
+
       setProfile({
         full_name: updatedProfile.full_name,
         email: updatedProfile.email,
       });
 
       setProfileSuccess("Profile updated successfully.");
+
+      await loadStatistics();
     } catch (error) {
       setProfileError(
         error instanceof Error
@@ -177,6 +227,8 @@ export default function ProfilePage() {
       setPasswordSuccess(response.message);
       setPasswords(initialPasswords);
       setConfirmPassword("");
+
+      await loadStatistics();
     } catch (error) {
       setPasswordError(
         error instanceof Error
@@ -203,7 +255,8 @@ export default function ProfilePage() {
           <p className="profile-eyebrow">Account settings</p>
           <h1>Profile</h1>
           <p>
-            Manage your personal details and account security.
+            Manage your account and review your monitoring
+            statistics.
           </p>
         </div>
 
@@ -212,10 +265,113 @@ export default function ProfilePage() {
         </div>
       </div>
 
+      <section className="profile-statistics-section">
+        <div className="profile-section-heading">
+          <div>
+            <h2>Account overview</h2>
+            <p>Your SiteCare monitoring activity.</p>
+          </div>
+
+          <button
+            type="button"
+            className="profile-refresh-button"
+            onClick={() => void loadStatistics()}
+            disabled={refreshingStatistics}
+          >
+            <RefreshCw
+              size={16}
+              className={
+                refreshingStatistics
+                  ? "profile-refresh-spinning"
+                  : ""
+              }
+            />
+            Refresh
+          </button>
+        </div>
+
+        <div className="profile-statistics-grid">
+          <article className="profile-stat-card">
+            <div className="profile-stat-icon profile-stat-blue">
+              <Globe2 size={21} />
+            </div>
+            <div>
+              <span>Total websites</span>
+              <strong>
+                {statistics?.total_websites ?? 0}
+              </strong>
+            </div>
+          </article>
+
+          <article className="profile-stat-card">
+            <div className="profile-stat-icon profile-stat-green">
+              <Activity size={21} />
+            </div>
+            <div>
+              <span>Active websites</span>
+              <strong>
+                {statistics?.active_websites ?? 0}
+              </strong>
+            </div>
+          </article>
+
+          <article className="profile-stat-card">
+            <div className="profile-stat-icon profile-stat-purple">
+              <Clock3 size={21} />
+            </div>
+            <div>
+              <span>Health checks</span>
+              <strong>
+                {statistics?.total_health_checks ?? 0}
+              </strong>
+            </div>
+          </article>
+
+          <article className="profile-stat-card">
+            <div className="profile-stat-icon profile-stat-red">
+              <Siren size={21} />
+            </div>
+            <div>
+              <span>Incidents detected</span>
+              <strong>
+                {statistics?.total_incidents ?? 0}
+              </strong>
+            </div>
+          </article>
+
+          <article className="profile-stat-card">
+            <div className="profile-stat-icon profile-stat-orange">
+              <History size={21} />
+            </div>
+            <div>
+              <span>Account activities</span>
+              <strong>
+                {statistics?.total_activities ?? 0}
+              </strong>
+            </div>
+          </article>
+        </div>
+
+        <div className="profile-last-activity">
+          <History size={17} />
+
+          <span>
+            Last recorded activity:{" "}
+            <strong>
+              {statistics?.last_activity_at
+                ? formatDate(statistics.last_activity_at)
+                : "No activity recorded"}
+            </strong>
+          </span>
+        </div>
+      </section>
+
       <div className="profile-grid">
         <section className="profile-card">
           <div className="profile-card-heading">
-            <div className="profile-card-icon">👤</div>
+            <div className="profile-card-icon">
+              <UserRound size={20} />
+            </div>
 
             <div>
               <h2>Personal information</h2>
@@ -277,7 +433,9 @@ export default function ProfilePage() {
 
         <section className="profile-card">
           <div className="profile-card-heading">
-            <div className="profile-card-icon">🔐</div>
+            <div className="profile-card-icon">
+              <KeyRound size={20} />
+            </div>
 
             <div>
               <h2>Change password</h2>
@@ -376,7 +534,7 @@ export default function ProfilePage() {
           <div>
             <span>Member since</span>
             <strong>
-              {new Date(account.created_at).toLocaleDateString()}
+              {formatDate(account.created_at)}
             </strong>
           </div>
         </section>
