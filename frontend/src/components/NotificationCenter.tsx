@@ -25,6 +25,7 @@ import type { InAppNotification } from "../types/inAppNotification";
 
 import "./NotificationCenter.css";
 
+
 function formatRelativeTime(dateValue: string): string {
   const difference =
     Date.now() - new Date(dateValue).getTime();
@@ -190,6 +191,16 @@ export default function NotificationCenter() {
     }
 
     setOpen(false);
+
+    if (
+  notification.resource_type === "incident" &&
+  notification.resource_id
+) {
+  navigate(
+    `/incidents?selected=${notification.resource_id}`,
+  );
+  return;
+}
 
     if (
       notification.resource_type === "website" &&
