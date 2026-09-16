@@ -1,4 +1,5 @@
 from app.models.audit_log import AuditLog
+from app.models.in_app_notification import InAppNotification
 from app.models.incident import Incident
 from app.models.monitor_check import MonitorCheck
 from app.models.notification_preference import (
@@ -14,4 +15,5 @@ __all__ = [
     "NotificationPreference",
     "User",
     "Website",
+    "InAppNotification",
 ]
