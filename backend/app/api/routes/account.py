@@ -13,6 +13,7 @@ from app.schemas.account import (
     ProfileUpdate,
 )
 from app.schemas.auth import UserResponse
+from app.services.audit import create_audit_log
 
 router = APIRouter(prefix="/account", tags=["Account"])
 
@@ -52,14 +53,33 @@ def update_profile(
             detail="An account with this email already exists.",
         )
 
+    old_email = current_user.email
+    old_name = current_user.full_name
+
     current_user.full_name = normalized_name
     current_user.email = normalized_email
+
+    create_audit_log(
+        database,
+        user_id=current_user.id,
+        action="profile.updated",
+        resource_type="user",
+        resource_id=current_user.id,
+        description="Account profile information was updated.",
+        details={
+            "old_name": old_name,
+            "new_name": normalized_name,
+            "old_email": old_email,
+            "new_email": normalized_email,
+        },
+    )
 
     try:
         database.commit()
         database.refresh(current_user)
     except IntegrityError:
         database.rollback()
+
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail="An account with this email already exists.",
@@ -68,7 +88,10 @@ def update_profile(
     return current_user
 
 
-@router.post("/change-password", response_model=MessageResponse)
+@router.post(
+    "/change-password",
+    response_model=MessageResponse,
+)
 def change_password(
     payload: PasswordChange,
     database: Session = Depends(get_db),
@@ -86,10 +109,20 @@ def change_password(
     if payload.current_password == payload.new_password:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="New password must be different from the current password.",
+            detail=("New password must be different from the current password."),
         )
 
     current_user.hashed_password = hash_password(payload.new_password)
+
+    create_audit_log(
+        database,
+        user_id=current_user.id,
+        action="password.changed",
+        resource_type="user",
+        resource_id=current_user.id,
+        description="Account password was changed.",
+    )
+
     database.commit()
 
     return MessageResponse(message="Password changed successfully.")
