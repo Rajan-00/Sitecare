@@ -4,10 +4,12 @@ import {
   useState,
 } from "react";
 import {
+  CheckCircle2,
   ChevronLeft,
   ChevronRight,
   Clock3,
   FileClock,
+  Globe2,
   KeyRound,
   RefreshCw,
   UserRound,
@@ -38,6 +40,30 @@ const actionOptions: ActionOption[] = [
     label: "Password changes",
     value: "password.changed",
   },
+  {
+    label: "Websites added",
+    value: "website.created",
+  },
+  {
+    label: "Websites updated",
+    value: "website.updated",
+  },
+  {
+    label: "Websites enabled",
+    value: "website.enabled",
+  },
+  {
+    label: "Websites disabled",
+    value: "website.disabled",
+  },
+  {
+    label: "Websites deleted",
+    value: "website.deleted",
+  },
+  {
+    label: "Manual checks",
+    value: "monitoring.manual_check",
+  },
 ];
 
 function getActivityIcon(action: string) {
@@ -47,6 +73,14 @@ function getActivityIcon(action: string) {
 
   if (action === "password.changed") {
     return <KeyRound size={19} />;
+  }
+
+  if (action.startsWith("website.")) {
+    return <Globe2 size={19} />;
+  }
+
+  if (action === "monitoring.manual_check") {
+    return <CheckCircle2 size={19} />;
   }
 
   return <FileClock size={19} />;
@@ -76,6 +110,18 @@ function getActivityLabel(action: string): string {
   if (action === "monitoring.check_started") {
     return "Health check started";
   }
+
+  if (action === "website.enabled") {
+  return "Website enabled";
+}
+
+if (action === "website.disabled") {
+  return "Website disabled";
+}
+
+if (action === "monitoring.manual_check") {
+  return "Manual health check";
+}
 
   return action
     .split(".")
