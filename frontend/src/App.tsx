@@ -22,6 +22,7 @@ import { WebsiteDetailPage } from "./pages/WebsiteDetailPage";
 import ProfilePage from "./pages/ProfilePage";
 import ActivityPage from "./pages/ActivityPage";
 import NotificationsPage from "./pages/NotificationsPage";
+import NotFoundPage from "./pages/NotFoundPage";
 
 function ProtectedLayout() {
   return (
@@ -99,11 +100,12 @@ function App() {
           />
           <Route path="profile" element={<ProfilePage />} />
           <Route path="/activity" element={<ActivityPage />} />
-          <Route path="/notifications" element={<NotificationsPage />}
+          <Route path="/notifications" element={<NotificationsPage />} />
+          <Route path="*" element={<NotFoundPage />} />
 
 
 
-/>
+
           
         </Routes>
       </AuthProvider>
