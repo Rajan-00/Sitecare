@@ -32,3 +32,6 @@ coverage/
 .DS_Store
 .idea/
 .vscode/
+
+# Vitest reports and artifacts
+.vitest/
