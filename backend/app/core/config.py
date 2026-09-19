@@ -1,9 +1,7 @@
 from functools import lru_cache
 
-from pydantic_settings import (
-    BaseSettings,
-    SettingsConfigDict,
-)
+from pydantic import Field
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
@@ -14,9 +12,8 @@ class Settings(BaseSettings):
     scheduler_enabled: bool = True
     scheduler_interval_seconds: int = 60
 
-    jwt_secret_key: str = (
-        "WVReaIYy2ROjz_bBZUdKFM2lDNXIsKtaeIUBALp9LWbbtaYwfcMGp1fz2jdvZqV0sZmulb_ZavKY4uHdv6LY5Q"
-    )
+    # This value must come from backend/.env.
+    jwt_secret_key: str = Field(min_length=32)
     jwt_algorithm: str = "HS256"
     access_token_expire_minutes: int = 60
 
@@ -44,5 +41,3 @@ def get_settings() -> Settings:
 
 
 settings = get_settings()
-
-# Authentication
