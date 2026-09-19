@@ -9,11 +9,23 @@ from app.core.config import settings
 from app.db.session import SessionLocal
 from app.models.monitor_check import MonitorCheck
 from app.models.website import Website
-from app.services.monitoring_manager import perform_and_store_check
+from app.services.monitoring_manager import (
+    perform_and_store_check,
+)
 
 logger = logging.getLogger(__name__)
 
 scheduler = AsyncIOScheduler(timezone="UTC")
+
+
+def get_monitoring_scheduler_status() -> str:
+    if not settings.scheduler_enabled:
+        return "disabled"
+
+    if scheduler.running:
+        return "running"
+
+    return "stopped"
 
 
 def make_utc(value: datetime) -> datetime:
@@ -109,3 +121,5 @@ def stop_monitoring_scheduler() -> None:
 
     scheduler.shutdown(wait=False)
     logger.info("SiteCare monitoring scheduler stopped.")
+
+
