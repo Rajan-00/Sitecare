@@ -1,12 +1,15 @@
 import {
   useCallback,
   useEffect,
+  useRef,
   useState,
 } from "react";
 import {
   Activity,
   Clock3,
   Globe2,
+  Pause,
+  Play,
   Plus,
   RefreshCw,
   ShieldAlert,
@@ -26,6 +29,8 @@ import type {
 } from "../types/dashboard";
 
 import "./DashboardPage.css";
+
+const AUTO_REFRESH_INTERVAL_MS = 30_000;
 
 function formatResponseTime(
   value: number | null,
@@ -53,6 +58,23 @@ function formatLastChecked(
   }).format(new Date(value));
 }
 
+function formatUpdatedTime(
+  value: Date | null,
+): string {
+  if (!value) {
+    return "Waiting for data";
+  }
+
+  return `Updated ${new Intl.DateTimeFormat(
+    undefined,
+    {
+      hour: "numeric",
+      minute: "2-digit",
+      second: "2-digit",
+    },
+  ).format(value)}`;
+}
+
 function getHealthClass(score: number): string {
   if (score >= 90) {
     return "health-score--excellent";
@@ -66,6 +88,8 @@ function getHealthClass(score: number): string {
 }
 
 export function DashboardPage() {
+  const requestInProgress = useRef(false);
+
   const [summary, setSummary] =
     useState<DashboardSummary | null>(null);
 
@@ -78,11 +102,23 @@ export function DashboardPage() {
   const [isRefreshing, setIsRefreshing] =
     useState(false);
 
+  const [autoRefreshEnabled, setAutoRefreshEnabled] =
+    useState(true);
+
+  const [lastUpdatedAt, setLastUpdatedAt] =
+    useState<Date | null>(null);
+
   const [error, setError] =
     useState<string | null>(null);
 
   const loadDashboard = useCallback(
     async (refresh = false) => {
+      if (requestInProgress.current) {
+        return;
+      }
+
+      requestInProgress.current = true;
+
       if (refresh) {
         setIsRefreshing(true);
       } else {
@@ -100,14 +136,15 @@ export function DashboardPage() {
 
         setSummary(summaryData);
         setWebsites(websiteData);
+        setLastUpdatedAt(new Date());
       } catch (requestError) {
-        const message =
+        setError(
           requestError instanceof Error
             ? requestError.message
-            : "Unable to load dashboard data.";
-
-        setError(message);
+            : "Unable to load dashboard data.",
+        );
       } finally {
+        requestInProgress.current = false;
         setIsLoading(false);
         setIsRefreshing(false);
       }
@@ -118,6 +155,27 @@ export function DashboardPage() {
   useEffect(() => {
     void loadDashboard();
   }, [loadDashboard]);
+
+  useEffect(() => {
+    if (!autoRefreshEnabled) {
+      return undefined;
+    }
+
+    const intervalId = window.setInterval(() => {
+      if (
+        document.visibilityState === "visible"
+      ) {
+        void loadDashboard(true);
+      }
+    }, AUTO_REFRESH_INTERVAL_MS);
+
+    return () => {
+      window.clearInterval(intervalId);
+    };
+  }, [
+    autoRefreshEnabled,
+    loadDashboard,
+  ]);
 
   if (isLoading) {
     return (
@@ -132,7 +190,7 @@ export function DashboardPage() {
     );
   }
 
-  if (error || !summary) {
+  if (!summary) {
     return (
       <div className="page-state page-state--error">
         <ShieldAlert size={32} />
@@ -161,14 +219,49 @@ export function DashboardPage() {
     <>
       <section className="dashboard-intro">
         <div>
-          <div className="live-indicator">
-            <span />
-            Live monitoring active
+          <div className="dashboard-live-row">
+            <div className="live-indicator">
+              <span />
+              Live monitoring active
+            </div>
+
+            <span className="dashboard-last-updated">
+              {formatUpdatedTime(
+                lastUpdatedAt,
+              )}
+            </span>
+
+            <button
+              type="button"
+              className={
+                autoRefreshEnabled
+                  ? "auto-refresh-toggle auto-refresh-toggle--active"
+                  : "auto-refresh-toggle"
+              }
+              aria-pressed={
+                autoRefreshEnabled
+              }
+              onClick={() =>
+                setAutoRefreshEnabled(
+                  (current) => !current,
+                )
+              }
+            >
+              {autoRefreshEnabled ? (
+                <Pause size={13} />
+              ) : (
+                <Play size={13} />
+              )}
+
+              {autoRefreshEnabled
+                ? "Auto-refresh on"
+                : "Auto-refresh off"}
+            </button>
           </div>
 
           <p>
-            Monitor uptime, performance, incidents, and
-            website health from one workspace.
+            Monitor uptime, performance, incidents,
+            and website health from one workspace.
           </p>
         </div>
 
@@ -177,7 +270,9 @@ export function DashboardPage() {
             className="secondary-button"
             type="button"
             disabled={isRefreshing}
-            onClick={() => void loadDashboard(true)}
+            onClick={() =>
+              void loadDashboard(true)
+            }
           >
             <RefreshCw
               className={
@@ -203,10 +298,34 @@ export function DashboardPage() {
         </div>
       </section>
 
+      {error && (
+        <div
+          className="dashboard-refresh-error"
+          role="alert"
+        >
+          <ShieldAlert size={16} />
+
+          <span>
+            The latest refresh failed: {error}
+          </span>
+
+          <button
+            type="button"
+            onClick={() =>
+              void loadDashboard(true)
+            }
+          >
+            Try again
+          </button>
+        </div>
+      )}
+
       <section className="statistics-grid">
         <StatCard
           title="Total websites"
-          value={String(summary.total_websites)}
+          value={String(
+            summary.total_websites,
+          )}
           description={
             `${summary.active_websites} currently active`
           }
@@ -216,7 +335,9 @@ export function DashboardPage() {
 
         <StatCard
           title="Operational"
-          value={String(summary.websites_up)}
+          value={String(
+            summary.websites_up,
+          )}
           description={
             `${summary.overall_uptime_percentage}% overall uptime`
           }
@@ -226,7 +347,9 @@ export function DashboardPage() {
 
         <StatCard
           title="Incidents"
-          value={String(summary.total_incidents)}
+          value={String(
+            summary.total_incidents,
+          )}
           description={
             `${summary.websites_down} currently down`
           }
@@ -260,8 +383,8 @@ export function DashboardPage() {
             </div>
 
             <p>
-              Current operational status and historical
-              performance.
+              Current operational status and
+              historical performance.
             </p>
           </div>
 
@@ -280,8 +403,8 @@ export function DashboardPage() {
             <h3>No websites registered</h3>
 
             <p>
-              Add your first website to begin uptime
-              and performance monitoring.
+              Add your first website to begin
+              uptime and performance monitoring.
             </p>
 
             <Link
@@ -308,86 +431,106 @@ export function DashboardPage() {
               </thead>
 
               <tbody>
-                {websites.map((website) => (
-                  <tr key={website.website_id}>
-                    <td>
-                      <div className="website-identity">
-                        <div className="website-icon">
-                          <Globe2 size={18} />
+                {websites.map(
+                  (website) => (
+                    <tr
+                      key={
+                        website.website_id
+                      }
+                    >
+                      <td>
+                        <div className="website-identity">
+                          <div className="website-icon">
+                            <Globe2
+                              size={18}
+                            />
+                          </div>
+
+                          <div>
+                            <Link
+                              className="website-name-link"
+                              to={`/websites/${website.website_id}`}
+                            >
+                              {
+                                website.website_name
+                              }
+                            </Link>
+
+                            <a
+                              href={
+                                website.website_url
+                              }
+                              target="_blank"
+                              rel="noreferrer"
+                            >
+                              {
+                                website.website_url
+                              }
+                            </a>
+                          </div>
                         </div>
+                      </td>
 
-                        <div>
-                          <Link
-                            className="website-name-link"
-                            to={
-                              `/websites/${website.website_id}`
-                            }
-                          >
-                            {website.website_name}
-                          </Link>
+                      <td>
+                        <StatusBadge
+                          status={
+                            website.current_status
+                          }
+                        />
+                      </td>
 
-                          <a
-                            href={website.website_url}
-                            target="_blank"
-                            rel="noreferrer"
-                          >
-                            {website.website_url}
-                          </a>
-                        </div>
-                      </div>
-                    </td>
-
-                    <td>
-                      <StatusBadge
-                        status={
-                          website.current_status
-                        }
-                      />
-                    </td>
-
-                    <td>
-                      <div className="health-score">
-                        <div className="health-score__track">
-                          <span
-                            className={getHealthClass(
-                              website.health_score,
-                            )}
-                            style={{
-                              width: `${Math.min(
+                      <td>
+                        <div className="health-score">
+                          <div className="health-score__track">
+                            <span
+                              className={getHealthClass(
                                 website.health_score,
-                                100,
-                              )}%`,
-                            }}
-                          />
+                              )}
+                              style={{
+                                width: `${Math.min(
+                                  website.health_score,
+                                  100,
+                                )}%`,
+                              }}
+                            />
+                          </div>
+
+                          <strong>
+                            {
+                              website.health_score
+                            }
+                            %
+                          </strong>
                         </div>
+                      </td>
 
+                      <td>
                         <strong>
-                          {website.health_score}%
+                          {
+                            website.uptime_percentage
+                          }
+                          %
                         </strong>
-                      </div>
-                    </td>
+                      </td>
 
-                    <td>
-                      <strong>
-                        {website.uptime_percentage}%
-                      </strong>
-                    </td>
+                      <td>
+                        {formatResponseTime(
+                          website.average_response_time_ms,
+                        )}
+                      </td>
 
-                    <td>
-                      {formatResponseTime(
-                        website.average_response_time_ms,
-                      )}
-                    </td>
+                      <td>
+                        {website.total_checks}
+                      </td>
 
-                    <td>{website.total_checks}</td>
-
-                    <td>
-                      {formatLastChecked(
-                        website.last_checked_at,
-                      )}
-                    </td>
-                  </tr>
-                ))}
+                      <td>
+                        {formatLastChecked(
+                          website.last_checked_at,
+                        )}
+                      </td>
+                    </tr>
+                  ),
+                )}
               </tbody>
             </table>
           </div>
