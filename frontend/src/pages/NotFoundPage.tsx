@@ -35,7 +35,7 @@ export default function NotFoundPage() {
             to="/"
           >
             <Home size={17} />
-            Dashboard
+            Home
           </Link>
 
           <button

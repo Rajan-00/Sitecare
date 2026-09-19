@@ -17,6 +17,7 @@ import {
 
 import { useAuth } from "../context/AuthContext";
 import { registerUser } from "../services/api";
+import "./AuthPage.css";
 
 export function RegisterPage() {
   const navigate = useNavigate();
@@ -45,7 +46,7 @@ export function RegisterPage() {
     useState<string | null>(null);
 
   if (isAuthenticated) {
-    return <Navigate replace to="/" />;
+    return <Navigate replace to="/dashboard" />;
   }
 
   async function handleSubmit(
@@ -83,7 +84,7 @@ export function RegisterPage() {
         password,
       );
 
-      navigate("/", { replace: true });
+      navigate("/dashboard", { replace: true });
     } catch (requestError) {
       setError(
         requestError instanceof Error
@@ -105,24 +106,23 @@ export function RegisterPage() {
 
           <div>
             <strong>SiteCare AI</strong>
-            <span>Health Intelligence</span>
+            <span>Website monitoring</span>
           </div>
         </div>
 
         <div className="auth-brand-content">
           <p className="section-eyebrow">
-            Proactive website maintenance
-          </p>
+  Website monitoring platform
+</p>
 
-          <h1>
-            Start monitoring smarter.
-          </h1>
+<h1>
+  Start monitoring with confidence.
+</h1>
 
-          <p>
-            Register your administrator account and
-            begin tracking website health and future
-            maintenance risks.
-          </p>
+<p>
+  Create your account and keep website health, incidents
+  and performance history organized in one place.
+</p>
         </div>
       </section>
 

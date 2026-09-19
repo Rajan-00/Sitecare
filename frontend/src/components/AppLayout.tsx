@@ -1,8 +1,9 @@
-import { useState } from "react";
+import {
+  useEffect,
+  useState,
+} from "react";
 import {
   Activity,
-  Bell,
-  Bot,
   ChartNoAxesCombined,
   CircleGauge,
   Globe2,
@@ -18,6 +19,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import {
+  Link,
   NavLink,
   Outlet,
   useLocation,
@@ -25,6 +27,7 @@ import {
 } from "react-router-dom";
 
 import { useAuth } from "../context/AuthContext";
+import NotificationCenter from "./NotificationCenter";
 
 import "./AppLayout.css";
 
@@ -37,8 +40,8 @@ interface NavigationItem {
 
 const navigationItems: NavigationItem[] = [
   {
-    label: "Dashboard",
-    path: "/",
+    label: "Overview",
+    path: "/dashboard",
     icon: CircleGauge,
     end: true,
   },
@@ -53,9 +56,9 @@ const navigationItems: NavigationItem[] = [
     icon: Siren,
   },
   {
-    label: "AI Insights",
+    label: "Performance",
     path: "/anomalies",
-    icon: Bot,
+    icon: Activity,
   },
   {
     label: "Maintenance",
@@ -67,6 +70,9 @@ const navigationItems: NavigationItem[] = [
     path: "/analytics",
     icon: ChartNoAxesCombined,
   },
+];
+
+const accountNavigationItems: NavigationItem[] = [
   {
     label: "Settings",
     path: "/settings",
@@ -84,116 +90,204 @@ const navigationItems: NavigationItem[] = [
   },
 ];
 
-function getPageTitle(pathname: string): string {
-  if (pathname === "/") {
-    return "Dashboard";
+function getPageInformation(pathname: string): {
+  title: string;
+  description: string;
+} {
+  if (pathname === "/dashboard") {
+    return {
+      title: "Overview",
+      description:
+        "Website health and monitoring summary.",
+    };
+  }
+
+  if (pathname === "/websites/new") {
+    return {
+      title: "Add website",
+      description:
+        "Register a new website for automatic monitoring.",
+    };
+  }
+
+  if (
+    /^\/websites\/\d+\/edit$/.test(pathname)
+  ) {
+    return {
+      title: "Website settings",
+      description:
+        "Update monitoring configuration and website details.",
+    };
+  }
+
+  if (/^\/websites\/\d+$/.test(pathname)) {
+    return {
+      title: "Website details",
+      description:
+        "Review current health and monitoring history.",
+    };
   }
 
   if (pathname.startsWith("/websites")) {
-    return "Websites";
+    return {
+      title: "Websites",
+      description:
+        "Manage monitored websites and health checks.",
+    };
   }
 
   if (pathname.startsWith("/incidents")) {
-    return "Incidents";
+    return {
+      title: "Incidents",
+      description:
+        "Review downtime events and recoveries.",
+    };
   }
 
-  if (pathname.startsWith("/anomalies")) {
-    return "AI Insights";
-  }
-
-  if (pathname.startsWith("/maintenance")) {
-    return "Predictive Maintenance";
-  }
-
-  if (pathname.startsWith("/analytics")) {
-    return "Analytics";
-  }
-
-  if (pathname.startsWith("/settings")) {
-    return "Settings";
-  }
-
-  if (pathname.startsWith("/activity")) {
-    return "Activity Log";
-  }
-
-  if (pathname.startsWith("/profile")) {
-    return "Profile";
-  }
-
-  if (pathname.startsWith("/notifications")) {
-  return "Notifications";
-}
-
-if (pathname.startsWith("/notifications")) {
-  return "Notifications";
-}
-
-  return "SiteCare AI";
-}
-
-function getPageDescription(pathname: string): string {
-  if (pathname === "/") {
-    return "Monitor, analyze and protect your websites.";
-  }
-
-  if (pathname.startsWith("/websites")) {
-    return "Manage the websites monitored by SiteCare AI.";
-  }
-
-  if (pathname.startsWith("/incidents")) {
-    return "Review website downtime and recovery incidents.";
-  }
-
-  if (pathname.startsWith("/anomalies")) {
-    return "Review unusual website performance detected by AI.";
+  if (
+    pathname.startsWith("/anomalies")
+    || pathname.startsWith("/ai-insights")
+  ) {
+    return {
+      title: "Performance",
+      description:
+        "Review unusual response-time behaviour.",
+    };
   }
 
   if (pathname.startsWith("/maintenance")) {
-    return "View predictive maintenance insights and recommendations.";
+    return {
+      title: "Maintenance",
+      description:
+        "Review website risk and maintenance recommendations.",
+    };
   }
 
   if (pathname.startsWith("/analytics")) {
-    return "Explore uptime and website performance analytics.";
+    return {
+      title: "Analytics",
+      description:
+        "Explore uptime and response-time trends.",
+    };
   }
 
   if (pathname.startsWith("/settings")) {
-    return "Configure monitoring and notification preferences.";
+    return {
+      title: "Settings",
+      description:
+        "Configure monitoring and notification preferences.",
+    };
   }
 
   if (pathname.startsWith("/activity")) {
-    return "Review recent account and monitoring activity.";
+    return {
+      title: "Activity",
+      description:
+        "Review recent account and monitoring actions.",
+    };
   }
 
   if (pathname.startsWith("/profile")) {
-    return "Manage your SiteCare AI account.";
+    return {
+      title: "Profile",
+      description:
+        "Manage your personal information and password.",
+    };
   }
 
   if (pathname.startsWith("/notifications")) {
-  return "Review your latest monitoring and account alerts.";
+    return {
+      title: "Notifications",
+      description:
+        "Review monitoring and account alerts.",
+    };
+  }
+
+  return {
+    title: "SiteCare",
+    description: "Website monitoring platform.",
+  };
 }
 
-  return "Website monitoring and intelligence.";
+function SidebarNavigationLink({
+  item,
+  closeSidebar,
+}: {
+  item: NavigationItem;
+  closeSidebar: () => void;
+}) {
+  const Icon = item.icon;
+
+  return (
+    <NavLink
+      to={item.path}
+      end={item.end}
+      onClick={closeSidebar}
+      className={({ isActive }) =>
+        isActive
+          ? "sidebar-link sidebar-link-active"
+          : "sidebar-link"
+      }
+    >
+      <Icon
+        className="sidebar-link-icon"
+        size={18}
+        strokeWidth={1.9}
+      />
+
+      <span>{item.label}</span>
+    </NavLink>
+  );
 }
 
 export default function AppLayout() {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] =
+    useState(false);
 
   const location = useLocation();
   const navigate = useNavigate();
 
   const { user, logout } = useAuth();
 
-  const pageTitle = getPageTitle(location.pathname);
-  const pageDescription = getPageDescription(
+  const pageInformation = getPageInformation(
     location.pathname,
   );
 
   const userInitial =
-    user?.full_name?.trim().charAt(0).toUpperCase() || "U";
+    user?.full_name
+      ?.trim()
+      .charAt(0)
+      .toUpperCase() || "U";
 
-  async function handleLogout(): Promise<void> {
-    await logout();
+  useEffect(() => {
+    setSidebarOpen(false);
+  }, [location.pathname]);
+
+  useEffect(() => {
+    function handleKeyDown(event: KeyboardEvent) {
+      if (
+        event.key === "Escape"
+        && sidebarOpen
+      ) {
+        setSidebarOpen(false);
+      }
+    }
+
+    document.addEventListener(
+      "keydown",
+      handleKeyDown,
+    );
+
+    return () => {
+      document.removeEventListener(
+        "keydown",
+        handleKeyDown,
+      );
+    };
+  }, [sidebarOpen]);
+
+  function handleLogout(): void {
+    logout();
     navigate("/login", { replace: true });
   }
 
@@ -218,97 +312,111 @@ export default function AppLayout() {
             ? "app-sidebar app-sidebar-open"
             : "app-sidebar"
         }
+        aria-label="Application sidebar"
       >
-        <div className="sidebar-brand">
-          <div className="sidebar-brand-icon">
+        <Link
+          className="sidebar-brand"
+          to="/dashboard"
+          onClick={closeSidebar}
+        >
+          <span className="sidebar-brand-icon">
             <ShieldCheck
-              size={25}
-              strokeWidth={2.4}
+              size={22}
+              strokeWidth={2.2}
             />
-          </div>
+          </span>
 
-          <div className="sidebar-brand-text">
-            <strong>SiteCare AI</strong>
-            <span>Website Intelligence</span>
-          </div>
+          <span className="sidebar-brand-text">
+            <strong>SiteCare</strong>
+            <small>Website monitoring</small>
+          </span>
 
           <button
             type="button"
             className="sidebar-close-button"
-            aria-label="Close sidebar"
-            onClick={closeSidebar}
+            aria-label="Close navigation"
+            onClick={(event) => {
+              event.preventDefault();
+              closeSidebar();
+            }}
           >
-            <X size={21} />
+            <X size={20} />
           </button>
-        </div>
+        </Link>
 
-        <div className="sidebar-health">
-          <div className="sidebar-health-icon">
-            <Activity size={18} />
+        <div className="sidebar-workspace">
+          <div className="sidebar-workspace-indicator">
+            <span />
           </div>
 
           <div>
-            <strong>Monitoring active</strong>
-            <span>Your websites are protected</span>
+            <strong>Monitoring enabled</strong>
+            <span>Automated checks are running</span>
           </div>
-
-          <div
-            className="sidebar-health-dot"
-            aria-hidden="true"
-          />
         </div>
 
         <nav
           className="sidebar-navigation"
           aria-label="Main navigation"
         >
-          <p className="sidebar-section-label">
-            Workspace
-          </p>
+          <div className="sidebar-navigation-group">
+            <p className="sidebar-section-label">
+              Monitoring
+            </p>
 
-          {navigationItems.map(
-            ({ label, path, icon: Icon, end }) => (
-              <NavLink
-                key={path}
-                to={path}
-                end={end}
-                onClick={closeSidebar}
-                className={({ isActive }) =>
-                  isActive
-                    ? "sidebar-link sidebar-link-active"
-                    : "sidebar-link"
-                }
-              >
-                <Icon
-                  className="sidebar-link-icon"
-                  size={19}
-                  strokeWidth={2}
+            {navigationItems.map((item) => (
+              <SidebarNavigationLink
+                key={item.path}
+                item={item}
+                closeSidebar={closeSidebar}
+              />
+            ))}
+          </div>
+
+          <div className="sidebar-navigation-group">
+            <p className="sidebar-section-label">
+              Account
+            </p>
+
+            {accountNavigationItems.map(
+              (item) => (
+                <SidebarNavigationLink
+                  key={item.path}
+                  item={item}
+                  closeSidebar={closeSidebar}
                 />
-
-                <span>{label}</span>
-              </NavLink>
-            ),
-          )}
+              ),
+            )}
+          </div>
         </nav>
 
         <div className="sidebar-footer">
-          <div className="sidebar-footer-card">
-            <div className="sidebar-footer-card-icon">
-              <ShieldCheck size={20} />
-            </div>
+          <NavLink
+            to="/profile"
+            className="sidebar-footer-account"
+            onClick={closeSidebar}
+          >
+            <span className="sidebar-footer-avatar">
+              {userInitial}
+            </span>
 
-            <div>
-              <strong>SiteCare Protection</strong>
-              <span>Automatic monitoring enabled</span>
-            </div>
-          </div>
+            <span className="sidebar-footer-account-details">
+              <strong>
+                {user?.full_name || "SiteCare User"}
+              </strong>
+
+              <small>
+                {user?.email || "Account"}
+              </small>
+            </span>
+          </NavLink>
 
           <button
             type="button"
             className="sidebar-logout-button"
             onClick={handleLogout}
           >
-            <LogOut size={18} />
+            <LogOut size={17} />
             <span>Sign out</span>
           </button>
         </div>
@@ -323,34 +431,17 @@ export default function AppLayout() {
               aria-label="Open navigation"
               onClick={() => setSidebarOpen(true)}
             >
-              <Menu size={22} />
+              <Menu size={21} />
             </button>
 
             <div className="header-title">
-              <h1>{pageTitle}</h1>
-              <p>{pageDescription}</p>
+              <h1>{pageInformation.title}</h1>
+              <p>{pageInformation.description}</p>
             </div>
           </div>
 
           <div className="header-actions">
-            
-            <NavLink
-  to="/notifications"
-  className={({ isActive }) =>
-    isActive
-      ? "notification-button notification-button-active"
-      : "notification-button"
-  }
-  aria-label="Notifications"
-  title="Notifications"
->
-  <Bell size={20} />
-
-  <span
-    className="notification-indicator"
-    aria-hidden="true"
-  />
-</NavLink>
+            <NotificationCenter />
 
             <NavLink
               to="/profile"
@@ -361,30 +452,27 @@ export default function AppLayout() {
                   : "header-profile"
               }
             >
-              <div className="header-profile-avatar">
+              <span className="header-profile-avatar">
                 {userInitial}
-              </div>
+              </span>
 
-              <div className="header-profile-details">
+              <span className="header-profile-details">
                 <strong>
                   {user?.full_name || "SiteCare User"}
                 </strong>
 
-                <span>
-                  {user?.email || "Account profile"}
-                </span>
-              </div>
-
-              <UserRound
-                className="header-profile-icon"
-                size={18}
-              />
+                <small>
+                  {user?.email || "Account"}
+                </small>
+              </span>
             </NavLink>
           </div>
         </header>
 
         <main className="app-main">
-          <Outlet />
+          <div className="app-main-content">
+            <Outlet />
+          </div>
         </main>
       </div>
     </div>

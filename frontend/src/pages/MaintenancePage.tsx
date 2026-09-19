@@ -1,16 +1,17 @@
 import {
+  useCallback,
   useEffect,
   useMemo,
   useState,
 } from "react";
 import {
   Activity,
-  BrainCircuit,
   CircleGauge,
   Clock3,
+  Database,
   LoaderCircle,
+  RefreshCw,
   ShieldCheck,
-  Sparkles,
   TrendingDown,
   TrendingUp,
   TriangleAlert,
@@ -26,6 +27,8 @@ import type {
   MaintenanceRiskLevel,
 } from "../types/dashboard";
 
+import "./MaintenancePage.css";
+
 function formatResponseTime(
   value: number | null,
 ): string {
@@ -40,7 +43,7 @@ function formatTrend(
   value: number | null,
 ): string {
   if (value === null) {
-    return "Learning";
+    return "Collecting data";
   }
 
   if (Math.abs(value) < 0.01) {
@@ -68,7 +71,7 @@ function getRiskLabel(
 function getRiskClass(
   riskLevel: MaintenanceRiskLevel,
 ): string {
-  return `maintenance-risk--${riskLevel}`;
+  return `maintenance-risk-${riskLevel}`;
 }
 
 export function MaintenancePage() {
@@ -78,11 +81,22 @@ export function MaintenancePage() {
   const [isLoading, setIsLoading] =
     useState(true);
 
+  const [isRefreshing, setIsRefreshing] =
+    useState(false);
+
   const [error, setError] =
     useState<string | null>(null);
 
-  useEffect(() => {
-    async function loadPredictions() {
+  const loadPredictions = useCallback(
+    async (refresh = false) => {
+      if (refresh) {
+        setIsRefreshing(true);
+      } else {
+        setIsLoading(true);
+      }
+
+      setError(null);
+
       try {
         const data =
           await getMaintenancePredictions();
@@ -92,15 +106,19 @@ export function MaintenancePage() {
         setError(
           requestError instanceof Error
             ? requestError.message
-            : "Unable to load predictions.",
+            : "Unable to load maintenance assessments.",
         );
       } finally {
         setIsLoading(false);
+        setIsRefreshing(false);
       }
-    }
+    },
+    [],
+  );
 
+  useEffect(() => {
     void loadPredictions();
-  }, []);
+  }, [loadPredictions]);
 
   const readyPredictions = useMemo(
     () =>
@@ -151,62 +169,93 @@ export function MaintenancePage() {
           className="spin-animation"
           size={30}
         />
-        <p>Calculating maintenance predictions...</p>
+
+        <p>Loading maintenance assessments...</p>
       </div>
     );
   }
 
-  if (error) {
+  if (error && predictions.length === 0) {
     return (
       <div className="page-state page-state--error">
         <TriangleAlert size={34} />
-        <h2>Predictions unavailable</h2>
+
+        <h2>Maintenance data unavailable</h2>
+
         <p>{error}</p>
+
+        <button
+          className="primary-button"
+          type="button"
+          onClick={() => void loadPredictions()}
+        >
+          Try again
+        </button>
       </div>
     );
   }
 
   return (
-    <>
-      <section className="maintenance-hero">
-        <div className="maintenance-hero__icon">
-          <Wrench size={28} />
-        </div>
-
+    <div className="maintenance-page">
+      <div className="maintenance-toolbar">
         <div>
-          <p className="section-eyebrow">
-            Predictive intelligence
-          </p>
-
-          <h2>Maintenance predictions</h2>
+          <span className="maintenance-status">
+            <span />
+            Maintenance assessment active
+          </span>
 
           <p>
-            SiteCare analyzes response-time trends,
-            availability failures and anomalies to identify
-            websites that may require maintenance.
+            Review performance trends, failure rates and
+            maintenance recommendations for each website.
           </p>
         </div>
 
-        <div className="ai-model-status">
-          <span />
-          Prediction engine active
-        </div>
-      </section>
+        <button
+          type="button"
+          className="maintenance-refresh-button"
+          disabled={isRefreshing}
+          onClick={() =>
+            void loadPredictions(true)
+          }
+        >
+          <RefreshCw
+            size={16}
+            className={
+              isRefreshing
+                ? "maintenance-refresh-spinning"
+                : ""
+            }
+          />
 
-      <section className="detail-statistics">
-        <article className="detail-stat">
-          <CircleGauge size={21} />
+          {isRefreshing ? "Refreshing" : "Refresh"}
+        </button>
+      </div>
+
+      {error && (
+        <div className="maintenance-inline-error">
+          {error}
+        </div>
+      )}
+
+      <section className="maintenance-statistics">
+        <article className="maintenance-stat-card">
+          <span className="maintenance-stat-icon maintenance-stat-blue">
+            <CircleGauge size={19} />
+          </span>
 
           <div>
             <span>Average risk</span>
+
             <strong>
               {averageRiskScore.toFixed(1)}%
             </strong>
           </div>
         </article>
 
-        <article className="detail-stat">
-          <TriangleAlert size={21} />
+        <article className="maintenance-stat-card">
+          <span className="maintenance-stat-icon maintenance-stat-red">
+            <TriangleAlert size={19} />
+          </span>
 
           <div>
             <span>High-risk websites</span>
@@ -214,45 +263,49 @@ export function MaintenancePage() {
           </div>
         </article>
 
-        <article className="detail-stat">
-          <BrainCircuit size={21} />
+        <article className="maintenance-stat-card">
+          <span className="maintenance-stat-icon maintenance-stat-green">
+            <ShieldCheck size={19} />
+          </span>
 
           <div>
-            <span>Predictions ready</span>
+            <span>Assessments ready</span>
             <strong>{readyPredictions.length}</strong>
           </div>
         </article>
 
-        <article className="detail-stat">
-          <Activity size={21} />
+        <article className="maintenance-stat-card">
+          <span className="maintenance-stat-icon maintenance-stat-purple">
+            <Database size={19} />
+          </span>
 
           <div>
-            <span>Models learning</span>
+            <span>Collecting data</span>
             <strong>{learningCount}</strong>
           </div>
         </article>
       </section>
 
       {predictions.length === 0 ? (
-        <section className="dashboard-panel">
-          <div className="empty-state">
-            <ShieldCheck size={39} />
-            <h3>No websites available</h3>
-            <p>
-              Add a website and collect monitoring data
-              before generating maintenance predictions.
-            </p>
+        <section className="maintenance-empty-panel">
+          <ShieldCheck size={38} />
 
-            <Link
-              className="primary-button empty-state__button"
-              to="/websites/new"
-            >
-              Add website
-            </Link>
-          </div>
+          <h3>No websites available</h3>
+
+          <p>
+            Add a website and collect monitoring data before
+            maintenance assessments can be generated.
+          </p>
+
+          <Link
+            className="maintenance-primary-button"
+            to="/websites/new"
+          >
+            Add website
+          </Link>
         </section>
       ) : (
-        <section className="prediction-grid">
+        <section className="maintenance-grid">
           {predictions.map((prediction) => {
             const isDegrading =
               prediction.response_time_trend_ms !== null
@@ -260,39 +313,41 @@ export function MaintenancePage() {
 
             return (
               <article
-                className="prediction-card"
+                className="maintenance-card"
                 key={prediction.website_id}
               >
-                <div className="prediction-card__header">
-                  <div>
-                    <Link
-                      to={
-                        `/websites/${prediction.website_id}`
-                      }
-                    >
-                      {prediction.website_name}
-                    </Link>
-
-                    <span>
-                      {prediction.website_url}
+                <header className="maintenance-card-header">
+                  <div className="maintenance-website">
+                    <span className="maintenance-website-icon">
+                      <Wrench size={17} />
                     </span>
+
+                    <div>
+                      <Link
+                        to={`/websites/${prediction.website_id}`}
+                      >
+                        {prediction.website_name}
+                      </Link>
+
+                      <span>
+                        {prediction.website_url}
+                      </span>
+                    </div>
                   </div>
 
                   <span
-                    className={
-                      `maintenance-risk ${getRiskClass(
-                        prediction.risk_level,
-                      )}`
-                    }
+                    className={`maintenance-risk ${getRiskClass(
+                      prediction.risk_level,
+                    )}`}
                   >
                     {getRiskLabel(
                       prediction.risk_level,
                     )}
                   </span>
-                </div>
+                </header>
 
-                <div className="risk-score-section">
-                  <div className="risk-score-section__heading">
+                <div className="maintenance-risk-section">
+                  <div className="maintenance-risk-heading">
                     <span>Maintenance risk</span>
 
                     <strong>
@@ -300,23 +355,22 @@ export function MaintenancePage() {
                     </strong>
                   </div>
 
-                  <div className="risk-progress">
+                  <div className="maintenance-risk-track">
                     <span
                       className={getRiskClass(
                         prediction.risk_level,
                       )}
                       style={{
-                        width:
-                          `${Math.min(
-                            prediction.risk_score,
-                            100,
-                          )}%`,
+                        width: `${Math.min(
+                          prediction.risk_score,
+                          100,
+                        )}%`,
                       }}
                     />
                   </div>
                 </div>
 
-                <div className="prediction-metrics">
+                <div className="maintenance-metrics">
                   <div>
                     <span>
                       <Clock3 size={14} />
@@ -333,7 +387,7 @@ export function MaintenancePage() {
 
                   <div>
                     <span>
-                      <Sparkles size={14} />
+                      <Activity size={14} />
                       Predicted response
                     </span>
 
@@ -352,14 +406,15 @@ export function MaintenancePage() {
                       ) : (
                         <TrendingDown size={14} />
                       )}
+
                       Performance trend
                     </span>
 
                     <strong
                       className={
                         isDegrading
-                          ? "trend-value--negative"
-                          : "trend-value--positive"
+                          ? "maintenance-trend-negative"
+                          : "maintenance-trend-positive"
                       }
                     >
                       {formatTrend(
@@ -379,24 +434,26 @@ export function MaintenancePage() {
                       {
                         prediction
                           .failure_rate_percentage
-                      }%
+                      }
+                      %
                     </strong>
                   </div>
                 </div>
 
-                <div className="confidence-section">
+                <div className="maintenance-confidence">
                   <div>
-                    <span>Model confidence</span>
+                    <span>Assessment confidence</span>
 
                     <strong>
                       {
                         prediction
                           .confidence_percentage
-                      }%
+                      }
+                      %
                     </strong>
                   </div>
 
-                  <div className="confidence-progress">
+                  <div className="maintenance-confidence-track">
                     <span
                       style={{
                         width:
@@ -407,12 +464,12 @@ export function MaintenancePage() {
 
                   <small>
                     Based on {prediction.sample_count} valid
-                    response-time samples
+                    monitoring samples
                   </small>
                 </div>
 
-                <div className="recommendation-box">
-                  <Wrench size={17} />
+                <div className="maintenance-recommendation">
+                  <Wrench size={16} />
 
                   <div>
                     <strong>Recommendation</strong>
@@ -424,6 +481,6 @@ export function MaintenancePage() {
           })}
         </section>
       )}
-    </>
+    </div>
   );
 }

@@ -13,7 +13,6 @@ import {
   Save,
   Settings,
   ShieldAlert,
-  Sparkles,
 } from "lucide-react";
 
 import {
@@ -24,6 +23,8 @@ import type {
   NotificationPreference,
   NotificationPreferenceUpdate,
 } from "../types/dashboard";
+
+import "./SettingsPage.css";
 
 export function SettingsPage() {
   const [settings, setSettings] =
@@ -152,8 +153,8 @@ export function SettingsPage() {
     );
   }
 
-  return (
-    <>
+return (
+  <div className="settings-page">
       <section className="settings-header">
         <div className="settings-header__icon">
           <Settings size={26} />
@@ -167,9 +168,9 @@ export function SettingsPage() {
           <h2>Notification settings</h2>
 
           <p>
-            Choose where SiteCare sends website downtime,
-            recovery and AI anomaly alerts.
-          </p>
+  Choose where SiteCare sends downtime, recovery and
+  performance alerts.
+</p>
         </div>
       </section>
 
@@ -359,11 +360,11 @@ export function SettingsPage() {
 
             <label className="notification-option">
               <div className="notification-option__icon notification-option__icon--ai">
-                <Sparkles size={19} />
+                <CircleAlert size={19} />
               </div>
 
               <div>
-                <strong>AI anomaly detection</strong>
+                <strong>Performance anomaly detection</strong>
                 <span>
                   Alert when unusual performance is
                   detected.
@@ -428,9 +429,9 @@ export function SettingsPage() {
               successful check closes it.
             </li>
             <li>
-              Anomaly alerts require at least 20
-              historical measurements.
-            </li>
+  Performance alerts require at least 20 successful
+  historical measurements.
+</li>
             <li>
               SMTP passwords remain in the backend
               environment file.
@@ -438,6 +439,6 @@ export function SettingsPage() {
           </ul>
         </aside>
       </div>
-    </>
+    </div>
   );
 }

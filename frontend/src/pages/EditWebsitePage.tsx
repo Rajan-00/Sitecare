@@ -23,6 +23,8 @@ import {
 } from "../services/api";
 import type { Website } from "../types/dashboard";
 
+import "./WebsiteFormPage.css";
+
 export function EditWebsitePage() {
   const { websiteId } = useParams();
   const navigate = useNavigate();
@@ -118,7 +120,7 @@ export function EditWebsitePage() {
 
     try {
       await deleteWebsite(numericWebsiteId);
-      navigate("/");
+      navigate("/websites");
     } catch (requestError) {
       setError(
         requestError instanceof Error
@@ -147,8 +149,8 @@ export function EditWebsitePage() {
         <h2>Website unavailable</h2>
         <p>{error ?? "Website not found."}</p>
 
-        <Link className="primary-button" to="/">
-          Return to dashboard
+        <Link className="primary-button" to="/websites">
+          Return to websites
         </Link>
       </div>
     );

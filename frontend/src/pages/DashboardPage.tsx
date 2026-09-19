@@ -25,6 +25,8 @@ import type {
   WebsiteMetric,
 } from "../types/dashboard";
 
+import "./DashboardPage.css";
+
 function formatResponseTime(
   value: number | null,
 ): string {

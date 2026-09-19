@@ -35,6 +35,8 @@ import type {
   WebsiteStatusResponse,
 } from "../types/dashboard";
 
+import "./WebsiteDetailPage.css";
+
 
 
 function formatDate(value: string): string {
@@ -162,8 +164,9 @@ export function WebsiteDetailPage() {
         <h2>Website unavailable</h2>
         <p>{error}</p>
 
-        <Link className="primary-button" to="/">
-          Return to dashboard
+        <Link className="primary-button" to="/dashboard">
+          <ArrowLeft size={17} />
+          Back to websites
         </Link>
       </div>
     );
@@ -200,7 +203,8 @@ export function WebsiteDetailPage() {
     : null;
 
   return (
-    <>
+    <div className="website-detail-page">
+
       <div className="details-navigation">
   <Link className="back-link" to="/">
     <ArrowLeft size={17} />
@@ -378,7 +382,7 @@ export function WebsiteDetailPage() {
                   <th>Status</th>
                   <th>HTTP code</th>
                   <th>Response time</th>
-                  <th>AI analysis</th>
+                  <th>Analysis</th>
                   <th>Checked URL</th>
                   <th>Error</th>
                   <th>Checked at</th>
@@ -454,6 +458,6 @@ export function WebsiteDetailPage() {
           </div>
         )}
       </section>
-    </>
+    </div>
   );
 }

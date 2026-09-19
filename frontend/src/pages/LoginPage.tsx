@@ -18,6 +18,7 @@ import {
 } from "react-router-dom";
 
 import { useAuth } from "../context/AuthContext";
+import "./AuthPage.css";
 
 export function LoginPage() {
   const navigate = useNavigate();
@@ -44,7 +45,7 @@ export function LoginPage() {
     useState<string | null>(null);
 
   if (isAuthenticated) {
-    return <Navigate replace to="/" />;
+    return <Navigate replace to="/dashboard" />;
   }
 
   async function handleSubmit(
@@ -66,7 +67,7 @@ export function LoginPage() {
       } | null;
 
       navigate(
-        routeState?.from ?? "/",
+        routeState?.from ?? "/dashboard",
         { replace: true },
       );
     } catch (requestError) {
@@ -90,24 +91,23 @@ export function LoginPage() {
 
           <div>
             <strong>SiteCare AI</strong>
-            <span>Health Intelligence</span>
+            <span>Website monitoring</span>
           </div>
         </div>
 
         <div className="auth-brand-content">
-          <p className="section-eyebrow">
-            Intelligent website monitoring
-          </p>
+<p className="section-eyebrow">
+  Website monitoring platform
+</p>
 
-          <h1>
-            Keep every website healthy and reliable.
-          </h1>
+<h1>
+  Know when your websites need attention.
+</h1>
 
-          <p>
-            Monitor availability, detect anomalies and
-            predict maintenance requirements from one
-            intelligent platform.
-          </p>
+<p>
+  Track uptime, response times and incidents from one
+  reliable monitoring workspace.
+</p>
         </div>
       </section>
 

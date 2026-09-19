@@ -8,6 +8,7 @@ import {
 import { Link, useNavigate } from "react-router-dom";
 
 import { createWebsite } from "../services/api";
+import "./WebsiteFormPage.css";
 
 interface FormState {
   name: string;
@@ -67,10 +68,17 @@ export function AddWebsitePage() {
 
   return (
     <div className="form-page">
-      <Link className="back-link" to="/">
+      <Link className="back-link" to="/websites">
         <ArrowLeft size={17} />
-        Back to dashboard
+        BBack to websites
       </Link>
+
+      <Link
+  className="secondary-button"
+  to="/websites"
+>
+  Cancel
+</Link>
 
       <section className="form-card">
         <div className="form-card__heading">
@@ -160,7 +168,7 @@ export function AddWebsitePage() {
           </div>
 
           <div className="form-actions">
-            <Link className="secondary-button" to="/">
+            <Link className="secondary-button" to="/websites">
               Cancel
             </Link>
 

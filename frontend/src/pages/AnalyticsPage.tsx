@@ -12,7 +12,6 @@ import {
   LoaderCircle,
   RefreshCw,
   ShieldCheck,
-  Sparkles,
   TriangleAlert,
 } from "lucide-react";
 import {
@@ -39,6 +38,8 @@ import type {
   WebsiteMetric,
 } from "../types/dashboard";
 
+import "./AnalyticsPage.css";
+
 interface ChartPoint {
   id: number;
   time: string;
@@ -50,8 +51,8 @@ interface ChartPoint {
 }
 
 const PIE_COLORS = {
-  operational: "#20b877",
-  failed: "#e5484d",
+  operational: "#10b981",
+  failed: "#ef4444",
 };
 
 function formatTime(value: string): string {
@@ -287,19 +288,19 @@ export function AnalyticsPage() {
   }
 
   return (
-    <>
+    <div className="analytics-page">
       <section className="analytics-header">
         <div>
           <p className="section-eyebrow">
-            Performance intelligence
-          </p>
+  Monitoring report
+</p>
 
-          <h2>Website analytics</h2>
+<h2>Performance overview</h2>
 
-          <p>
-            Explore response times, availability and AI
-            anomaly history for each monitored website.
-          </p>
+<p>
+  Explore response times, availability and unusual
+  performance for each monitored website.
+</p>
         </div>
 
         <div className="analytics-controls">
@@ -408,10 +409,10 @@ export function AnalyticsPage() {
             </article>
 
             <article className="detail-stat">
-              <Sparkles size={21} />
+              <TriangleAlert size={21} />
 
               <div>
-                <span>AI anomalies</span>
+                <span>Performance anomalies</span>
                 <strong>
                   {analytics.anomalyCount}
                 </strong>
@@ -524,7 +525,7 @@ export function AnalyticsPage() {
 
                       <Scatter
                         dataKey="anomalyValue"
-                        name="AI anomaly"
+                        name="Anomaly"
                         fill="#d9468f"
                       />
                     </ComposedChart>
@@ -611,6 +612,6 @@ export function AnalyticsPage() {
           </section>
         </>
       )}
-    </>
+    </div>
   );
 }

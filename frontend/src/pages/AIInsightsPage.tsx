@@ -1,16 +1,17 @@
 import {
+  useCallback,
   useEffect,
   useMemo,
   useState,
 } from "react";
 import {
   Activity,
-  BrainCircuit,
   Clock3,
+  Gauge,
   Globe2,
   LoaderCircle,
+  RefreshCw,
   ShieldCheck,
-  Sparkles,
   TriangleAlert,
 } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -23,6 +24,8 @@ import type {
   MonitorCheck,
   WebsiteMetric,
 } from "../types/dashboard";
+
+import "./PerformancePage.css";
 
 function formatDate(value: string): string {
   return new Intl.DateTimeFormat("en", {
@@ -61,11 +64,22 @@ export function AIInsightsPage() {
   const [isLoading, setIsLoading] =
     useState(true);
 
+  const [isRefreshing, setIsRefreshing] =
+    useState(false);
+
   const [error, setError] =
     useState<string | null>(null);
 
-  useEffect(() => {
-    async function loadInsights() {
+  const loadInsights = useCallback(
+    async (refresh = false) => {
+      if (refresh) {
+        setIsRefreshing(true);
+      } else {
+        setIsLoading(true);
+      }
+
+      setError(null);
+
       try {
         const [
           anomalyData,
@@ -81,15 +95,19 @@ export function AIInsightsPage() {
         setError(
           requestError instanceof Error
             ? requestError.message
-            : "Unable to load AI insights.",
+            : "Unable to load performance insights.",
         );
       } finally {
         setIsLoading(false);
+        setIsRefreshing(false);
       }
-    }
+    },
+    [],
+  );
 
+  useEffect(() => {
     void loadInsights();
-  }, []);
+  }, [loadInsights]);
 
   const websiteNames = useMemo(() => {
     return new Map(
@@ -151,54 +169,77 @@ export function AIInsightsPage() {
           className="spin-animation"
           size={30}
         />
-        <p>Analyzing monitoring patterns...</p>
+
+        <p>Loading performance information...</p>
       </div>
     );
   }
 
-  if (error) {
+  if (error && anomalies.length === 0) {
     return (
       <div className="page-state page-state--error">
         <TriangleAlert size={34} />
 
-        <h2>AI insights unavailable</h2>
+        <h2>Performance insights unavailable</h2>
+
         <p>{error}</p>
+
+        <button
+          className="primary-button"
+          type="button"
+          onClick={() => void loadInsights()}
+        >
+          Try again
+        </button>
       </div>
     );
   }
 
   return (
-    <>
-      <section className="ai-hero">
-        <div className="ai-hero__icon">
-          <BrainCircuit size={29} />
-        </div>
-
+    <div className="performance-page">
+      <div className="performance-toolbar">
         <div>
-          <div className="ai-hero__title">
-            <p className="section-eyebrow">
-              Machine-learning analysis
-            </p>
-
-            <h2>AI performance insights</h2>
-          </div>
+          <span className="performance-status">
+            <span />
+            Performance analysis active
+          </span>
 
           <p>
-            Isolation Forest analyzes historical response
-            times and identifies unusual performance
-            behaviour.
+            Review response-time changes that differ from
+            each website’s normal monitoring history.
           </p>
         </div>
 
-        <div className="ai-model-status">
-          <span />
-          Model active
-        </div>
-      </section>
+        <button
+          type="button"
+          className="performance-refresh-button"
+          disabled={isRefreshing}
+          onClick={() => void loadInsights(true)}
+        >
+          <RefreshCw
+            size={16}
+            className={
+              isRefreshing
+                ? "performance-refresh-spinning"
+                : ""
+            }
+          />
 
-      <section className="detail-statistics">
-        <article className="detail-stat">
-          <Sparkles size={21} />
+          {isRefreshing ? "Refreshing" : "Refresh"}
+        </button>
+      </div>
+
+      {error && (
+        <div className="performance-inline-error">
+          {error}
+        </div>
+      )}
+
+      <section className="performance-statistics">
+        <article className="performance-stat-card">
+          <span className="performance-stat-icon performance-stat-blue">
+            <Activity size={19} />
+          </span>
 
           <div>
             <span>Total anomalies</span>
@@ -206,8 +247,10 @@ export function AIInsightsPage() {
           </div>
         </article>
 
-        <article className="detail-stat">
-          <Globe2 size={21} />
+        <article className="performance-stat-card">
+          <span className="performance-stat-icon performance-stat-purple">
+            <Globe2 size={19} />
+          </span>
 
           <div>
             <span>Affected websites</span>
@@ -215,8 +258,10 @@ export function AIInsightsPage() {
           </div>
         </article>
 
-        <article className="detail-stat">
-          <Activity size={21} />
+        <article className="performance-stat-card">
+          <span className="performance-stat-icon performance-stat-orange">
+            <Gauge size={19} />
+          </span>
 
           <div>
             <span>Last 24 hours</span>
@@ -224,11 +269,14 @@ export function AIInsightsPage() {
           </div>
         </article>
 
-        <article className="detail-stat">
-          <Clock3 size={21} />
+        <article className="performance-stat-card">
+          <span className="performance-stat-icon performance-stat-green">
+            <Clock3 size={19} />
+          </span>
 
           <div>
-            <span>Average anomaly response</span>
+            <span>Average response</span>
+
             <strong>
               {formatResponseTime(
                 averageAnomalyResponseTime,
@@ -238,64 +286,64 @@ export function AIInsightsPage() {
         </article>
       </section>
 
-      <section className="ai-information">
-        <ShieldCheck size={20} />
+      <section className="performance-information">
+        <span className="performance-information-icon">
+          <ShieldCheck size={19} />
+        </span>
 
         <div>
-          <strong>How detection works</strong>
+          <strong>How performance detection works</strong>
 
           <p>
-            SiteCare requires at least 20 successful
-            measurements for each website. It then compares
-            new response times with that website’s normal
-            historical behaviour.
+            A website needs at least 20 successful
+            measurements before analysis begins. New
+            response times are compared with that website’s
+            previous monitoring behaviour.
           </p>
         </div>
       </section>
 
-      <section className="dashboard-panel">
-        <div className="panel-heading">
+      <section className="performance-panel">
+        <div className="performance-panel-heading">
           <div>
-            <div className="panel-heading__title">
-              <BrainCircuit size={20} />
-              <h2>Detected anomalies</h2>
-            </div>
+            <h2>Response-time anomalies</h2>
 
             <p>
-              Unusual response times identified by the
-              machine-learning model.
+              Monitoring results that differ from normal
+              historical performance.
             </p>
           </div>
 
-          <span className="record-count">
-            {anomalies.length} results
+          <span className="performance-record-count">
+            {anomalies.length} result
+            {anomalies.length === 1 ? "" : "s"}
           </span>
         </div>
 
         {anomalies.length === 0 ? (
-          <div className="empty-state">
-            <ShieldCheck size={39} />
+          <div className="performance-empty-state">
+            <ShieldCheck size={38} />
 
-            <h3>No anomalies detected</h3>
+            <h3>No performance anomalies</h3>
 
             <p>
-              SiteCare has not found any unusual response
-              times. Each website needs at least 20
-              successful checks before analysis begins.
+              No unusual response times have been detected.
+              Monitoring will continue as more measurements
+              are collected.
             </p>
           </div>
         ) : (
-          <div className="table-wrapper">
-            <table className="website-table">
+          <div className="performance-table-wrapper">
+            <table className="performance-table">
               <thead>
                 <tr>
                   <th>Website</th>
-                  <th>AI result</th>
+                  <th>Result</th>
                   <th>Response time</th>
                   <th>HTTP status</th>
                   <th>Model score</th>
                   <th>Explanation</th>
-                  <th>Detected at</th>
+                  <th>Detected</th>
                 </tr>
               </thead>
 
@@ -304,11 +352,13 @@ export function AIInsightsPage() {
                   <tr key={anomaly.id}>
                     <td>
                       <Link
-                        className="website-name-link"
-                        to={
-                          `/websites/${anomaly.website_id}`
-                        }
+                        className="performance-website-link"
+                        to={`/websites/${anomaly.website_id}`}
                       >
+                        <span>
+                          <Globe2 size={15} />
+                        </span>
+
                         {websiteNames.get(
                           anomaly.website_id,
                         ) ??
@@ -317,14 +367,14 @@ export function AIInsightsPage() {
                     </td>
 
                     <td>
-                      <span className="anomaly-badge">
-                        <Sparkles size={13} />
+                      <span className="performance-anomaly-badge">
+                        <TriangleAlert size={13} />
                         Anomaly
                       </span>
                     </td>
 
                     <td>
-                      <strong className="anomaly-response">
+                      <strong className="performance-response-value">
                         {formatResponseTime(
                           anomaly.response_time_ms,
                         )}
@@ -336,7 +386,7 @@ export function AIInsightsPage() {
                     </td>
 
                     <td>
-                      <code className="model-score">
+                      <code className="performance-model-score">
                         {formatScore(
                           anomaly.anomaly_score,
                         )}
@@ -344,7 +394,13 @@ export function AIInsightsPage() {
                     </td>
 
                     <td>
-                      <span className="anomaly-reason">
+                      <span
+                        className="performance-reason"
+                        title={
+                          anomaly.anomaly_reason ??
+                          "Unusual performance detected."
+                        }
+                      >
                         {anomaly.anomaly_reason ??
                           "Unusual performance detected."}
                       </span>
@@ -362,6 +418,6 @@ export function AIInsightsPage() {
           </div>
         )}
       </section>
-    </>
+    </div>
   );
 }

@@ -405,7 +405,7 @@ export default function NotificationCenter() {
                 navigate("/notifications");
               }}
             >
-              View account activity
+              View all notifications
             </button>
           </div>
         </div>

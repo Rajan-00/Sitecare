@@ -8,13 +8,14 @@ import {
 import AppLayout from "./components/AppLayout";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { AuthProvider } from "./context/AuthContext";
-import ActivityPage  from "./pages/ActivityPage";
+import ActivityPage from "./pages/ActivityPage";
 import { AddWebsitePage } from "./pages/AddWebsitePage";
 import { AIInsightsPage } from "./pages/AIInsightsPage";
 import { AnalyticsPage } from "./pages/AnalyticsPage";
 import { DashboardPage } from "./pages/DashboardPage";
 import { EditWebsitePage } from "./pages/EditWebsitePage";
 import { IncidentsPage } from "./pages/IncidentsPage";
+import LandingPage from "./pages/LandingPage";
 import { LoginPage } from "./pages/LoginPage";
 import { MaintenancePage } from "./pages/MaintenancePage";
 import NotFoundPage from "./pages/NotFoundPage";
@@ -38,6 +39,12 @@ function App() {
     <BrowserRouter>
       <AuthProvider>
         <Routes>
+          {/* Public routes */}
+          <Route
+            path="/"
+            element={<LandingPage />}
+          />
+
           <Route
             path="/login"
             element={<LoginPage />}
@@ -48,9 +55,10 @@ function App() {
             element={<RegisterPage />}
           />
 
+          {/* Authenticated application */}
           <Route element={<ProtectedLayout />}>
             <Route
-              index
+              path="dashboard"
               element={<DashboardPage />}
             />
 
@@ -123,12 +131,13 @@ function App() {
               path="notifications"
               element={<NotificationsPage />}
             />
-
-            <Route
-              path="*"
-              element={<NotFoundPage />}
-            />
           </Route>
+
+          {/* Public 404 page */}
+          <Route
+            path="*"
+            element={<NotFoundPage />}
+          />
         </Routes>
       </AuthProvider>
     </BrowserRouter>
