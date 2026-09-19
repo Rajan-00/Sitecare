@@ -6,6 +6,8 @@ from pydantic import BaseModel, ConfigDict
 class IncidentResponse(BaseModel):
     id: int
     website_id: int
+    website_name: str
+    website_url: str
     severity: str
     cause: str | None
     first_status_code: int | None
