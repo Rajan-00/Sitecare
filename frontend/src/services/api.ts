@@ -16,12 +16,18 @@ import type {
 } from "../types/dashboard";
 import { getStoredToken } from "./authStorage";
 
+
+
 const configuredApiUrl =
   import.meta.env.VITE_API_BASE_URL ??
   "http://127.0.0.1:8000/api/v1";
 
 export const API_BASE_URL =
   configuredApiUrl.replace(/\/+$/, "");
+
+  function notifyUnauthorized(): void {
+  window.dispatchEvent(new CustomEvent("auth:unauthorized"));
+}
 
 interface ApiErrorResponse {
   detail?: string;
@@ -68,9 +74,13 @@ export async function apiRequest<T>(
     );
   }
 
-  if (!response.ok) {
-    let message =
-      `Request failed with status ${response.status}.`;
+if (!response.ok) {
+  if (response.status === 401 && token) {
+    notifyUnauthorized();
+  }
+
+  let message =
+    `Request failed with status ${response.status}.`;
 
     try {
       const errorData =
@@ -267,9 +277,13 @@ export async function downloadWebsiteReport(
     },
   );
 
-  if (!response.ok) {
-    let message =
-      `Report download failed with status ${response.status}.`;
+if (!response.ok) {
+  if (response.status === 401 && token) {
+    notifyUnauthorized();
+  }
+
+  let message =
+    `Report download failed with status ${response.status}.`;
 
     try {
       const errorData =

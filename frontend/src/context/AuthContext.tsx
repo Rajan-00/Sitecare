@@ -12,13 +12,12 @@ import {
   loginUser,
 } from "../services/api";
 import {
+  AUTH_UNAUTHORIZED_EVENT,
   getStoredToken,
   removeStoredToken,
   storeToken,
 } from "../services/authStorage";
-import type {
-  AuthUser,
-} from "../types/dashboard";
+import type { AuthUser } from "../types/dashboard";
 
 interface AuthContextValue {
   user: AuthUser | null;
@@ -48,7 +47,25 @@ export function AuthProvider({
     useState(true);
 
   useEffect(() => {
-    async function restoreSession() {
+    function handleUnauthorized(): void {
+      setUser(null);
+    }
+
+    window.addEventListener(
+      AUTH_UNAUTHORIZED_EVENT,
+      handleUnauthorized,
+    );
+
+    return () => {
+      window.removeEventListener(
+        AUTH_UNAUTHORIZED_EVENT,
+        handleUnauthorized,
+      );
+    };
+  }, []);
+
+  useEffect(() => {
+    async function restoreSession(): Promise<void> {
       const token = getStoredToken();
 
       if (!token) {
@@ -90,7 +107,7 @@ export function AuthProvider({
     setUser(null);
   }
 
-  const value = useMemo(
+  const value = useMemo<AuthContextValue>(
     () => ({
       user,
       isAuthenticated: user !== null,
