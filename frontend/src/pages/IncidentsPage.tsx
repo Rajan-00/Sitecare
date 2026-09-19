@@ -7,6 +7,7 @@ import {
 import {
   CheckCircle2,
   Clock3,
+  Globe2,
   LoaderCircle,
   RefreshCw,
   ShieldAlert,
@@ -50,7 +51,22 @@ function formatDuration(
     return `${Math.round(seconds / 60)} min`;
   }
 
-  return `${(seconds / 3600).toFixed(1)} hr`;
+  if (seconds < 86400) {
+    return `${(seconds / 3600).toFixed(1)} hr`;
+  }
+
+  return `${(seconds / 86400).toFixed(1)} days`;
+}
+
+function formatWebsiteHost(url: string): string {
+  try {
+    return new URL(url).hostname.replace(
+      /^www\./,
+      "",
+    );
+  } catch {
+    return url;
+  }
 }
 
 export function IncidentsPage() {
@@ -86,7 +102,10 @@ export function IncidentsPage() {
       setError(null);
 
       try {
-        setIncidents(await getIncidents());
+        const incidentData =
+          await getIncidents();
+
+        setIncidents(incidentData);
       } catch (requestError) {
         setError(
           requestError instanceof Error
@@ -115,8 +134,7 @@ export function IncidentsPage() {
 
   const criticalIncidents = incidents.filter(
     (incident) =>
-      incident.severity.toLowerCase() ===
-      "critical",
+      incident.severity === "critical",
   ).length;
 
   const visibleIncidents = useMemo(() => {
@@ -142,6 +160,7 @@ export function IncidentsPage() {
           className="spin-animation"
           size={30}
         />
+
         <p>Loading incidents...</p>
       </div>
     );
@@ -188,8 +207,8 @@ export function IncidentsPage() {
           </span>
 
           <p>
-            Review website downtime, recovery events and
-            recorded failures.
+            Review website downtime, recovery
+            events and recorded failures.
           </p>
         </div>
 
@@ -197,7 +216,9 @@ export function IncidentsPage() {
           type="button"
           className="incidents-refresh-button"
           disabled={isRefreshing}
-          onClick={() => void loadIncidents(true)}
+          onClick={() =>
+            void loadIncidents(true)
+          }
         >
           <RefreshCw
             size={16}
@@ -208,7 +229,9 @@ export function IncidentsPage() {
             }
           />
 
-          {isRefreshing ? "Refreshing" : "Refresh"}
+          {isRefreshing
+            ? "Refreshing"
+            : "Refresh"}
         </button>
       </div>
 
@@ -270,7 +293,8 @@ export function IncidentsPage() {
             <h2>Incident history</h2>
 
             <p>
-              Service failures and recorded recoveries.
+              Service failures and recorded
+              recoveries.
             </p>
           </div>
 
@@ -284,7 +308,8 @@ export function IncidentsPage() {
               value={filter}
               onChange={(event) =>
                 setFilter(
-                  event.target.value as IncidentFilter,
+                  event.target
+                    .value as IncidentFilter,
                 )
               }
             >
@@ -357,14 +382,24 @@ export function IncidentsPage() {
                         <Link
                           className="incident-website-link"
                           to={`/websites/${incident.website_id}`}
+                          title={`View ${incident.website_name}`}
                         >
                           <span className="incident-website-icon">
-                            <Siren size={15} />
+                            <Globe2 size={15} />
                           </span>
 
-                          <span>
-                            Website #
-                            {incident.website_id}
+                          <span className="incident-website-copy">
+                            <strong>
+                              {
+                                incident.website_name
+                              }
+                            </strong>
+
+                            <small>
+                              {formatWebsiteHost(
+                                incident.website_url,
+                              )}
+                            </small>
                           </span>
                         </Link>
                       </td>
@@ -385,7 +420,7 @@ export function IncidentsPage() {
 
                       <td>
                         <span
-                          className={`severity-badge severity-badge-${incident.severity.toLowerCase()}`}
+                          className={`severity-badge severity-badge-${incident.severity}`}
                         >
                           {incident.severity}
                         </span>

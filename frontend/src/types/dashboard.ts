@@ -78,6 +78,8 @@ export interface WebsiteMetric {
 export interface Incident {
   id: number;
   website_id: number;
+  website_name: string;
+  website_url: string;
   severity: "warning" | "critical";
   cause: string | null;
   first_status_code: number | null;
