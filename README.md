@@ -151,6 +151,11 @@ Never commit real passwords, JWT secrets, SMTP credentials, databases, or `.env`
 
 GitHub: [Rajan-00](https://github.com/Rajan-00)
 
+## Documentation
+
+- [System Architecture](docs/ARCHITECTURE.md)
+- API documentation is available at `http://127.0.0.1:8000/docs` while the backend is running.
+
 ## License
 
 This project was developed as an academic software project.
