@@ -14,24 +14,70 @@ import type {
   WebsiteStatusResponse,
   WebsiteUpdate,
 } from "../types/dashboard";
-import { getStoredToken } from "./authStorage";
 
-
+import {
+  getStoredToken,
+  removeStoredToken,
+} from "./authStorage";
 
 const configuredApiUrl =
   import.meta.env.VITE_API_BASE_URL ??
   "http://127.0.0.1:8000/api/v1";
 
-export const API_BASE_URL =
-  configuredApiUrl.replace(/\/+$/, "");
+export const API_BASE_URL = configuredApiUrl.replace(
+  /\/+$/,
+  "",
+);
 
-  function notifyUnauthorized(): void {
-  window.dispatchEvent(new CustomEvent("auth:unauthorized"));
-}
+export const SESSION_EXPIRED_EVENT =
+  "sitecare:unauthorized";
 
 interface ApiErrorResponse {
   detail?: string;
   message?: string;
+}
+
+function isPublicAuthPath(path: string): boolean {
+  return (
+    path === "/auth/login" ||
+    path === "/auth/register"
+  );
+}
+
+async function getErrorMessage(
+  response: Response,
+  defaultMessage: string,
+): Promise<string> {
+  try {
+    const errorData =
+      (await response.json()) as ApiErrorResponse;
+
+    return (
+      errorData.detail ??
+      errorData.message ??
+      defaultMessage
+    );
+  } catch {
+    return defaultMessage;
+  }
+}
+
+function handleUnauthorizedResponse(
+  path: string,
+  token: string | null,
+): void {
+  if (
+    !token ||
+    isPublicAuthPath(path)
+  ) {
+    return;
+  }
+
+  removeStoredToken();
+
+  window.dispatchEvent(
+    new Event(SESSION_EXPIRED_EVENT),
+  );
 }
 
 export async function apiRequest<T>(
@@ -40,18 +86,26 @@ export async function apiRequest<T>(
 ): Promise<T> {
   const headers = new Headers(options.headers);
   const token = getStoredToken();
+  const isPublicRequest = isPublicAuthPath(path);
 
   headers.set("Accept", "application/json");
 
   if (
     options.body &&
     !(options.body instanceof FormData) &&
+    !(options.body instanceof URLSearchParams) &&
     !headers.has("Content-Type")
   ) {
-    headers.set("Content-Type", "application/json");
+    headers.set(
+      "Content-Type",
+      "application/json",
+    );
   }
 
-  if (token) {
+  if (
+    token &&
+    !isPublicRequest
+  ) {
     headers.set(
       "Authorization",
       `Bearer ${token}`,
@@ -74,25 +128,15 @@ export async function apiRequest<T>(
     );
   }
 
-if (!response.ok) {
-  if (response.status === 401 && token) {
-    notifyUnauthorized();
+  if (response.status === 401) {
+    handleUnauthorizedResponse(path, token);
   }
 
-  let message =
-    `Request failed with status ${response.status}.`;
-
-    try {
-      const errorData =
-        (await response.json()) as ApiErrorResponse;
-
-      message =
-        errorData.detail ??
-        errorData.message ??
-        message;
-    } catch {
-      // The response did not contain JSON.
-    }
+  if (!response.ok) {
+    const message = await getErrorMessage(
+      response,
+      `Request failed with status ${response.status}.`,
+    );
 
     throw new Error(message);
   }
@@ -126,10 +170,13 @@ Promise<Website[]> {
 export function createWebsite(
   payload: WebsiteCreate,
 ): Promise<Website> {
-  return apiRequest<Website>("/websites", {
-    method: "POST",
-    body: JSON.stringify(payload),
-  });
+  return apiRequest<Website>(
+    "/websites",
+    {
+      method: "POST",
+      body: JSON.stringify(payload),
+    },
+  );
 }
 
 export function getWebsite(
@@ -176,8 +223,12 @@ export function getWebsiteChecks(
   websiteId: number,
   limit = 50,
 ): Promise<MonitorCheck[]> {
+  const parameters = new URLSearchParams();
+
+  parameters.set("limit", String(limit));
+
   return apiRequest<MonitorCheck[]>(
-    `/monitoring/websites/${websiteId}/checks?limit=${limit}`,
+    `/monitoring/websites/${websiteId}/checks?${parameters.toString()}`,
   );
 }
 
@@ -260,39 +311,45 @@ export async function downloadWebsiteReport(
 ): Promise<void> {
   const token = getStoredToken();
 
-  const response = await fetch(
-    `${API_BASE_URL}/reports/websites/${websiteId}/${format}`,
-    {
-      headers: {
-        Accept:
-          format === "pdf"
-            ? "application/pdf"
-            : "text/csv",
-        ...(token
-          ? {
-              Authorization: `Bearer ${token}`,
-            }
-          : {}),
-      },
-    },
-  );
+  let response: Response;
 
-if (!response.ok) {
-  if (response.status === 401 && token) {
-    notifyUnauthorized();
+  try {
+    response = await fetch(
+      `${API_BASE_URL}/reports/websites/${websiteId}/${format}`,
+      {
+        headers: {
+          Accept:
+            format === "pdf"
+              ? "application/pdf"
+              : "text/csv",
+          ...(token
+            ? {
+                Authorization:
+                  `Bearer ${token}`,
+              }
+            : {}),
+        },
+      },
+    );
+  } catch {
+    throw new Error(
+      "Unable to connect to the SiteCare API.",
+    );
   }
 
-  let message =
-    `Report download failed with status ${response.status}.`;
+  if (response.status === 401 && token) {
+    removeStoredToken();
 
-    try {
-      const errorData =
-        (await response.json()) as ApiErrorResponse;
+    window.dispatchEvent(
+      new Event(SESSION_EXPIRED_EVENT),
+    );
+  }
 
-      message = errorData.detail ?? message;
-    } catch {
-      // The report response did not contain JSON.
-    }
+  if (!response.ok) {
+    const message = await getErrorMessage(
+      response,
+      `Report download failed with status ${response.status}.`,
+    );
 
     throw new Error(message);
   }
@@ -301,7 +358,8 @@ if (!response.ok) {
   const downloadUrl =
     window.URL.createObjectURL(blob);
 
-  const anchor = document.createElement("a");
+  const anchor =
+    document.createElement("a");
 
   anchor.href = downloadUrl;
   anchor.download =
