@@ -30,6 +30,7 @@ import { useAuth } from "../context/AuthContext";
 import NotificationCenter from "./NotificationCenter";
 
 import "./AppLayout.css";
+import SystemStatus from "./SystemStatus";
 
 interface NavigationItem {
   label: string;
@@ -344,16 +345,7 @@ export default function AppLayout() {
           </button>
         </Link>
 
-        <div className="sidebar-workspace">
-          <div className="sidebar-workspace-indicator">
-            <span />
-          </div>
-
-          <div>
-            <strong>Monitoring enabled</strong>
-            <span>Automated checks are running</span>
-          </div>
-        </div>
+<SystemStatus />
 
         <nav
           className="sidebar-navigation"

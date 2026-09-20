@@ -85,13 +85,30 @@
 
 .sidebar-workspace {
   display: flex;
+  width: 100%;
+  min-height: 52px;
   align-items: center;
   gap: 10px;
   margin-bottom: 18px;
   padding: 10px 11px;
   border: 1px solid #dcfce7;
   border-radius: 9px;
+  color: inherit;
   background: #f0fdf4;
+  font-family: inherit;
+  text-align: left;
+  transition:
+    border-color 150ms ease,
+    background-color 150ms ease;
+}
+
+.sidebar-workspace:hover:not(:disabled) {
+  border-color: #bbf7d0;
+  background: #ecfdf5;
+}
+
+.sidebar-workspace:disabled {
+  cursor: wait;
 }
 
 .sidebar-workspace-indicator {
@@ -111,28 +128,130 @@
   background: #16a34a;
 }
 
-.sidebar-workspace > div:last-child {
+.sidebar-workspace-copy {
+  display: block;
   min-width: 0;
 }
 
-.sidebar-workspace strong,
-.sidebar-workspace span {
+.sidebar-workspace-copy strong,
+.sidebar-workspace-copy span {
   display: block;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.sidebar-workspace strong {
+.sidebar-workspace-copy strong {
   color: #166534;
   font-size: 11px;
   font-weight: 650;
 }
 
-.sidebar-workspace span {
+.sidebar-workspace-copy span {
   margin-top: 2px;
   color: #4d7c5d;
   font-size: 9px;
+}
+
+/* Checking state */
+
+.sidebar-workspace--checking {
+  border-color: #e2e8f0;
+  background: #f8fafc;
+}
+
+.sidebar-workspace--checking
+.sidebar-workspace-indicator {
+  background: #e2e8f0;
+}
+
+.sidebar-workspace--checking
+.sidebar-workspace-indicator span {
+  background: #64748b;
+  animation:
+    system-status-pulse 1s ease-in-out infinite;
+}
+
+.sidebar-workspace--checking
+.sidebar-workspace-copy strong {
+  color: #475569;
+}
+
+.sidebar-workspace--checking
+.sidebar-workspace-copy span {
+  color: #8290a3;
+}
+
+/* Scheduler disabled */
+
+.sidebar-workspace--disabled {
+  border-color: #fde68a;
+  background: #fffbeb;
+}
+
+.sidebar-workspace--disabled
+.sidebar-workspace-indicator {
+  background: #fef3c7;
+}
+
+.sidebar-workspace--disabled
+.sidebar-workspace-indicator span {
+  background: #d97706;
+}
+
+.sidebar-workspace--disabled
+.sidebar-workspace-copy strong {
+  color: #92400e;
+}
+
+.sidebar-workspace--disabled
+.sidebar-workspace-copy span {
+  color: #a16207;
+}
+
+/* Unavailable state */
+
+.sidebar-workspace--unavailable {
+  border-color: #fecaca;
+  background: #fff5f5;
+}
+
+.sidebar-workspace--unavailable:hover:not(:disabled) {
+  border-color: #fca5a5;
+  background: #fef2f2;
+}
+
+.sidebar-workspace--unavailable
+.sidebar-workspace-indicator {
+  background: #fee2e2;
+}
+
+.sidebar-workspace--unavailable
+.sidebar-workspace-indicator span {
+  background: #dc2626;
+}
+
+.sidebar-workspace--unavailable
+.sidebar-workspace-copy strong {
+  color: #991b1b;
+}
+
+.sidebar-workspace--unavailable
+.sidebar-workspace-copy span {
+  color: #b91c1c;
+}
+
+@keyframes system-status-pulse {
+  0%,
+  100% {
+    opacity: 0.45;
+    transform: scale(0.8);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 /* Navigation */
@@ -443,6 +562,7 @@
 /* Accessibility */
 
 .sidebar-link:focus-visible,
+.sidebar-workspace:focus-visible,
 .sidebar-close-button:focus-visible,
 .sidebar-logout-button:focus-visible,
 .mobile-menu-button:focus-visible,
