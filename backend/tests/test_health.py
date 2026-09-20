@@ -132,3 +132,23 @@ def test_readiness_returns_503_when_database_fails(
     assert detail["database"] == (
         "unavailable"
     )
+
+def test_local_frontend_origin_is_allowed(
+    client: TestClient,
+) -> None:
+    response = client.options(
+        "/api/v1/health",
+        headers={
+            "Origin": "http://localhost:5173",
+            "Access-Control-Request-Method": "GET",
+        },
+    )
+
+    assert response.status_code == 200
+
+    assert (
+        response.headers[
+            "access-control-allow-origin"
+        ]
+        == "http://localhost:5173"
+    )
