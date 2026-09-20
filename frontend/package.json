@@ -1,15 +1,15 @@
 {
   "name": "frontend",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
-   "dev": "vite",
-  "build": "tsc -b && vite build",
-  "lint": "oxlint",
-  "test": "vitest run",
-  "test:watch": "vitest",
-  "preview": "vite preview"
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "lint": "oxlint",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "preview": "vite preview"
   },
   "dependencies": {
     "lucide-react": "^1.46.0",

@@ -42,13 +42,13 @@ async def lifespan(
 
 
 app = FastAPI(
-    title="SiteCare AI API",
+    title=settings.app_name,
     description=(
         "An intelligent website health monitoring, "
         "anomaly detection and predictive maintenance "
         "platform."
     ),
-    version="1.0.0",
+    version=settings.app_version,
     lifespan=lifespan,
     docs_url="/docs",
     redoc_url="/redoc",
@@ -96,8 +96,8 @@ app.include_router(
 )
 def root() -> dict[str, str]:
     return {
-        "name": "SiteCare AI API",
+        "name": settings.app_name,
         "status": "running",
-        "version": "1.0.0",
+        "version": settings.app_version,
         "documentation": "/docs",
     }

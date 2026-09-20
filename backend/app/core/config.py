@@ -16,6 +16,7 @@ def default_cors_origins() -> list[str]:
 
 class Settings(BaseSettings):
     app_name: str = "SiteCare AI API"
+    app_version: str = "1.0.0"
     app_env: str = "development"
     database_url: str = "sqlite:///./sitecare.db"
 
