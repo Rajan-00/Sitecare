@@ -154,6 +154,7 @@ GitHub: [Rajan-00](https://github.com/Rajan-00)
 ## Documentation
 
 - [System Architecture](docs/ARCHITECTURE.md)
+- [College Demonstration Guide](docs/COLLEGE_DEMO.md)
 - API documentation is available at `http://127.0.0.1:8000/docs` while the backend is running.
 
 ## License
