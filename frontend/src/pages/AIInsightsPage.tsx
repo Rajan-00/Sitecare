@@ -72,6 +72,9 @@ export function AIInsightsPage() {
   const [error, setError] =
     useState<string | null>(null);
 
+  const [insightsLoadedAt, setInsightsLoadedAt] =
+  useState<number | null>(null);  
+
   const loadInsights = useCallback(
     async (refresh = false) => {
       if (refresh) {
@@ -93,6 +96,7 @@ export function AIInsightsPage() {
 
         setAnomalies(anomalyData);
         setWebsites(websiteData);
+        setInsightsLoadedAt(Date.now());
       } catch (requestError) {
         setError(
           requestError instanceof Error
@@ -129,14 +133,19 @@ export function AIInsightsPage() {
   }, [anomalies]);
 
   const recentAnomalyCount = useMemo(() => {
-    const twentyFourHoursAgo =
-      Date.now() - 24 * 60 * 60 * 1000;
+  if (insightsLoadedAt === null) {
+    return 0;
+  }
 
-    return anomalies.filter(
-      (anomaly) =>
-        parseApiDate(anomaly.checked_at).getTime() >= twentyFourHoursAgo,
-    ).length;
-  }, [anomalies]);
+  const twentyFourHoursAgo =
+    insightsLoadedAt - 24 * 60 * 60 * 1000;
+
+  return anomalies.filter(
+    (anomaly) =>
+      parseApiDate(anomaly.checked_at).getTime() >=
+      twentyFourHoursAgo,
+  ).length;
+}, [anomalies, insightsLoadedAt]);
 
   const averageAnomalyResponseTime =
     useMemo(() => {

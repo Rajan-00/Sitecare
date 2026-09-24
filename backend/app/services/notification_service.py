@@ -2,17 +2,15 @@ import asyncio
 import logging
 import smtplib
 import ssl
-import certifi  # add with the other imports
 from email.message import EmailMessage
 
+import certifi
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
 from app.models.monitor_check import MonitorCheck
-from app.models.notification_preference import (
-    NotificationPreference,
-)
+from app.models.notification_preference import NotificationPreference
 from app.models.website import Website
 
 logger = logging.getLogger(__name__)
