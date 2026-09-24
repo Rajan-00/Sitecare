@@ -6,13 +6,15 @@ export interface DashboardSummary {
   websites_not_checked: number;
   total_checks: number;
   total_incidents: number;
-  overall_uptime_percentage: number;
+  overall_uptime_percentage: number | null;
   average_response_time_ms: number | null;
 }
 
 export type WebsiteStatus =
   | "up"
   | "down"
+  | "blocked"
+  | "unknown"
   | "not_checked";
 
 export interface Website {
@@ -43,6 +45,7 @@ export interface MonitorCheck {
   status_code: number | null;
   response_time_ms: number | null;
   is_up: boolean;
+  outcome: Exclude<WebsiteStatus, "not_checked">;
   error_message: string | null;
   checked_url: string;
   checked_at: string;
@@ -65,8 +68,8 @@ export interface WebsiteMetric {
   website_url: string;
   is_active: boolean;
   current_status: WebsiteStatus;
-  health_score: number;
-  uptime_percentage: number;
+  health_score: number | null;
+  uptime_percentage: number | null;
   average_response_time_ms: number | null;
   total_checks: number;
   successful_checks: number;

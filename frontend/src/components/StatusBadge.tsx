@@ -21,6 +21,16 @@ const statusConfiguration = {
     className: "status-badge--down",
     icon: CircleX,
   },
+  blocked: {
+    label: "Access blocked",
+    className: "status-badge--unknown",
+    icon: CircleHelp,
+  },
+  unknown: {
+    label: "Unable to verify",
+    className: "status-badge--unknown",
+    icon: CircleHelp,
+  },
   not_checked: {
     label: "Not checked",
     className: "status-badge--unknown",

@@ -34,6 +34,7 @@ import type {
   Website,
   WebsiteStatusResponse,
 } from "../types/dashboard";
+import { NEPAL_TIME_ZONE, parseApiDate } from "../utils/dateTime";
 
 import "./WebsiteDetailPage.css";
 
@@ -41,9 +42,10 @@ import "./WebsiteDetailPage.css";
 
 function formatDate(value: string): string {
   return new Intl.DateTimeFormat("en", {
+    timeZone: NEPAL_TIME_ZONE,
     dateStyle: "medium",
     timeStyle: "medium",
-  }).format(new Date(value));
+  }).format(parseApiDate(value));
 }
 
 function formatResponseTime(
@@ -177,17 +179,24 @@ export function WebsiteDetailPage() {
   }
 
   const successfulChecks = checks.filter(
-    (check) => check.is_up,
+    (check) => check.outcome === "up",
   ).length;
 
-  const uptimePercentage = checks.length
+  const failedChecks = checks.filter(
+    (check) => check.outcome === "down",
+  ).length;
+
+  const verifiedChecks = successfulChecks + failedChecks;
+
+  const uptimePercentage = verifiedChecks
     ? (
-        (successfulChecks / checks.length)
+        (successfulChecks / verifiedChecks)
         * 100
       ).toFixed(2)
-    : "0.00";
+    : null;
 
   const responseTimes = checks
+    .filter((check) => check.outcome === "up")
     .map((check) => check.response_time_ms)
     .filter(
       (value): value is number => value !== null,
@@ -312,8 +321,8 @@ export function WebsiteDetailPage() {
         <article className="detail-stat">
           <ShieldCheck size={21} />
           <div>
-            <span>Uptime</span>
-            <strong>{uptimePercentage}%</strong>
+            <span>Verified check success</span>
+            <strong>{uptimePercentage === null ? "—" : `${uptimePercentage}%`}</strong>
           </div>
         </article>
 
@@ -342,7 +351,7 @@ export function WebsiteDetailPage() {
           <div>
             <span>Failed checks</span>
             <strong>
-              {checks.length - successfulChecks}
+              {failedChecks}
             </strong>
           </div>
         </article>
@@ -381,7 +390,7 @@ export function WebsiteDetailPage() {
                 <tr>
                   <th>Status</th>
                   <th>HTTP code</th>
-                  <th>Response time</th>
+                  <th>Check duration</th>
                   <th>Analysis</th>
                   <th>Checked URL</th>
                   <th>Error</th>
@@ -395,7 +404,7 @@ export function WebsiteDetailPage() {
                     <td>
                       <StatusBadge
                         status={
-                          check.is_up ? "up" : "down"
+                          check.outcome
                         }
                       />
                     </td>

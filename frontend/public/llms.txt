@@ -1,0 +1,7 @@
+# SiteCare
+
+SiteCare monitors website availability, response times, and incidents.
+
+## Public pages
+
+- [SiteCare homepage](/)

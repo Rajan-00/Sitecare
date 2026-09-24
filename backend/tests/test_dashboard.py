@@ -40,7 +40,7 @@ def test_empty_dashboard_summary(
     assert data["websites_not_checked"] == 0
     assert data["total_checks"] == 0
     assert data["total_incidents"] == 0
-    assert data["overall_uptime_percentage"] == 0.0
+    assert data["overall_uptime_percentage"] is None
     assert data["average_response_time_ms"] is None
 
 
@@ -145,7 +145,7 @@ def test_dashboard_website_metrics(
     assert website["website_id"] == website_id
     assert website["current_status"] == "down"
     assert website["uptime_percentage"] == 50.0
-    assert website["average_response_time_ms"] == 500.0
+    assert website["average_response_time_ms"] == 200.0
     assert website["total_checks"] == 2
     assert website["successful_checks"] == 1
     assert website["failed_checks"] == 1
@@ -169,8 +169,8 @@ def test_not_checked_website_metrics(
     website = response.json()[0]
 
     assert website["current_status"] == "not_checked"
-    assert website["health_score"] == 0.0
-    assert website["uptime_percentage"] == 0.0
+    assert website["health_score"] is None
+    assert website["uptime_percentage"] is None
     assert website["total_checks"] == 0
     assert website["last_checked_at"] is None
 

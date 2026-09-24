@@ -12,17 +12,20 @@ import {
   Info,
   LoaderCircle,
   RefreshCw,
+  Trash2,
   TriangleAlert,
   XCircle,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 import {
+  deleteReadNotifications,
   getNotificationPage,
   markAllNotificationsAsRead,
   markNotificationAsRead,
 } from "../services/inAppNotificationApi";
 import type { InAppNotification } from "../types/inAppNotification";
+import { NEPAL_TIME_ZONE, parseApiDate } from "../utils/dateTime";
 
 import "./NotificationsPage.css";
 
@@ -39,12 +42,13 @@ const filters = [
 
 function formatDate(dateValue: string): string {
   return new Intl.DateTimeFormat(undefined, {
+    timeZone: NEPAL_TIME_ZONE,
     year: "numeric",
     month: "short",
     day: "numeric",
     hour: "numeric",
     minute: "2-digit",
-  }).format(new Date(dateValue));
+  }).format(parseApiDate(dateValue));
 }
 
 function NotificationIcon({
@@ -80,10 +84,12 @@ export default function NotificationsPage() {
   const [filter, setFilter] = useState("");
   const [total, setTotal] = useState(0);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [readCount, setReadCount] = useState(0);
   const [page, setPage] = useState(1);
 
   const [loading, setLoading] = useState(true);
   const [markingAll, setMarkingAll] = useState(false);
+  const [deletingRead, setDeletingRead] = useState(false);
   const [error, setError] = useState("");
 
   const totalPages = Math.max(
@@ -109,6 +115,7 @@ export default function NotificationsPage() {
       setNotifications(response.items);
       setTotal(response.total);
       setUnreadCount(response.unread_count);
+      setReadCount(response.read_count);
     } catch (loadError) {
       setError(
         loadError instanceof Error
@@ -147,6 +154,7 @@ export default function NotificationsPage() {
       setUnreadCount((current) =>
         Math.max(0, current - 1),
       );
+      setReadCount((current) => current + 1);
 
       openNotificationResource(updatedNotification);
     } catch (readError) {
@@ -199,8 +207,11 @@ export default function NotificationsPage() {
       );
 
       setUnreadCount(0);
+      window.dispatchEvent(new Event("sitecare:notifications-changed"));
 
-      if (filter === "unread") {
+      if (filter === "unread" && page !== 1) {
+        setPage(1);
+      } else {
         await loadNotifications();
       }
     } catch (markError) {
@@ -211,6 +222,33 @@ export default function NotificationsPage() {
       );
     } finally {
       setMarkingAll(false);
+    }
+  }
+
+  async function handleDeleteRead() {
+    if (!window.confirm("Delete all read notifications? This cannot be undone.")) {
+      return;
+    }
+
+    try {
+      setDeletingRead(true);
+      setError("");
+      await deleteReadNotifications();
+      window.dispatchEvent(new Event("sitecare:notifications-changed"));
+
+      if (page !== 1) {
+        setPage(1);
+      } else {
+        await loadNotifications();
+      }
+    } catch (deleteError) {
+      setError(
+        deleteError instanceof Error
+          ? deleteError.message
+          : "Unable to delete read notifications.",
+      );
+    } finally {
+      setDeletingRead(false);
     }
   }
 
@@ -236,9 +274,23 @@ export default function NotificationsPage() {
         <div className="notifications-header-actions">
           <button
             type="button"
+            className="notifications-delete-button"
+            onClick={() => void handleDeleteRead()}
+            disabled={deletingRead || markingAll || readCount === 0 || loading}
+          >
+            {deletingRead ? (
+              <LoaderCircle className="notifications-spinner" size={17} />
+            ) : (
+              <Trash2 size={17} />
+            )}
+            Delete read
+          </button>
+
+          <button
+            type="button"
             className="notifications-secondary-button"
             onClick={() => void loadNotifications()}
-            disabled={loading}
+            disabled={loading || deletingRead}
           >
             <RefreshCw
               size={17}
@@ -256,7 +308,7 @@ export default function NotificationsPage() {
             className="notifications-primary-button"
             onClick={() => void handleMarkAll()}
             disabled={
-              markingAll || unreadCount === 0
+              markingAll || deletingRead || unreadCount === 0
             }
           >
             {markingAll ? (

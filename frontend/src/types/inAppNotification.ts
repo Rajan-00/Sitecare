@@ -15,6 +15,7 @@ export interface InAppNotificationListResponse {
   items: InAppNotification[];
   total: number;
   unread_count: number;
+  read_count: number;
   limit: number;
   offset: number;
 }
@@ -25,4 +26,8 @@ export interface UnreadCountResponse {
 
 export interface NotificationMessageResponse {
   message: string;
+}
+
+export interface DeletedNotificationsResponse {
+  deleted_count: number;
 }

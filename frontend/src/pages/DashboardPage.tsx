@@ -27,6 +27,7 @@ import type {
   DashboardSummary,
   WebsiteMetric,
 } from "../types/dashboard";
+import { NEPAL_TIME_ZONE, parseApiDate } from "../utils/dateTime";
 
 import "./DashboardPage.css";
 
@@ -50,12 +51,13 @@ function formatLastChecked(
   }
 
   return new Intl.DateTimeFormat("en", {
+    timeZone: NEPAL_TIME_ZONE,
     month: "short",
     day: "numeric",
     year: "numeric",
     hour: "numeric",
     minute: "2-digit",
-  }).format(new Date(value));
+  }).format(parseApiDate(value));
 }
 
 function formatUpdatedTime(
@@ -68,6 +70,7 @@ function formatUpdatedTime(
   return `Updated ${new Intl.DateTimeFormat(
     undefined,
     {
+      timeZone: NEPAL_TIME_ZONE,
       hour: "numeric",
       minute: "2-digit",
       second: "2-digit",
@@ -75,7 +78,10 @@ function formatUpdatedTime(
   ).format(value)}`;
 }
 
-function getHealthClass(score: number): string {
+function getHealthClass(score: number | null): string {
+  if (score === null) {
+    return "health-score--good";
+  }
   if (score >= 90) {
     return "health-score--excellent";
   }
@@ -339,7 +345,9 @@ export function DashboardPage() {
             summary.websites_up,
           )}
           description={
-            `${summary.overall_uptime_percentage}% overall uptime`
+            summary.overall_uptime_percentage === null
+              ? "Uptime not yet verified"
+              : `${summary.overall_uptime_percentage}% of verified checks`
           }
           icon={<Wifi size={22} />}
           tone="green"
@@ -423,7 +431,7 @@ export function DashboardPage() {
                   <th>Website</th>
                   <th>Status</th>
                   <th>Health</th>
-                  <th>Uptime</th>
+                  <th>Verified checks</th>
                   <th>Response</th>
                   <th>Checks</th>
                   <th>Last checked</th>
@@ -488,7 +496,7 @@ export function DashboardPage() {
                               )}
                               style={{
                                 width: `${Math.min(
-                                  website.health_score,
+                                  website.health_score ?? 0,
                                   100,
                                 )}%`,
                               }}
@@ -496,20 +504,18 @@ export function DashboardPage() {
                           </div>
 
                           <strong>
-                            {
-                              website.health_score
-                            }
-                            %
+                            {website.health_score === null
+                              ? "—"
+                              : `${website.health_score}%`}
                           </strong>
                         </div>
                       </td>
 
                       <td>
                         <strong>
-                          {
-                            website.uptime_percentage
-                          }
-                          %
+                          {website.uptime_percentage === null
+                            ? "—"
+                            : `${website.uptime_percentage}%`}
                         </strong>
                       </td>
 

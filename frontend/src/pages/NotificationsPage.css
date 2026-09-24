@@ -22,7 +22,8 @@
 }
 
 .notifications-primary-button,
-.notifications-secondary-button {
+.notifications-secondary-button,
+.notifications-delete-button {
   display: inline-flex;
   min-height: 38px;
   align-items: center;
@@ -63,8 +64,20 @@
   background: #f8fafc;
 }
 
+.notifications-delete-button {
+  border: 1px solid #fecaca;
+  color: #b42318;
+  background: #fff;
+}
+
+.notifications-delete-button:hover:not(:disabled) {
+  border-color: #fca5a5;
+  background: #fff5f5;
+}
+
 .notifications-primary-button:disabled,
-.notifications-secondary-button:disabled {
+.notifications-secondary-button:disabled,
+.notifications-delete-button:disabled {
   cursor: not-allowed;
   opacity: 0.5;
   transform: none;
@@ -457,11 +470,13 @@
 
   .notifications-header-actions {
     width: 100%;
+    flex-wrap: wrap;
   }
 
   .notifications-primary-button,
-  .notifications-secondary-button {
-    flex: 1;
+  .notifications-secondary-button,
+  .notifications-delete-button {
+    flex: 1 1 130px;
   }
 
   .notifications-overview {

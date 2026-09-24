@@ -7,7 +7,7 @@ from fastapi import (
     Query,
     status,
 )
-from sqlalchemy import func, select, update
+from sqlalchemy import delete, func, select, update
 from sqlalchemy.orm import Session
 
 from app.api.dependencies import get_current_user
@@ -15,6 +15,7 @@ from app.db.session import get_db
 from app.models.in_app_notification import InAppNotification
 from app.models.user import User
 from app.schemas.in_app_notification import (
+    DeletedNotificationsResponse,
     InAppNotificationListResponse,
     InAppNotificationResponse,
     NotificationMessageResponse,
@@ -77,6 +78,13 @@ def list_in_app_notifications(
         )
     )
 
+    read_count = database.scalar(
+        select(func.count(InAppNotification.id)).where(
+            InAppNotification.user_id == current_user.id,
+            InAppNotification.is_read.is_(True),
+        )
+    )
+
     notifications = database.scalars(
         select(InAppNotification)
         .where(*conditions)
@@ -94,6 +102,7 @@ def list_in_app_notifications(
         ],
         total=total or 0,
         unread_count=unread_count or 0,
+        read_count=read_count or 0,
         limit=limit,
         offset=offset,
     )
@@ -142,6 +151,24 @@ def mark_all_notifications_as_read(
     database.commit()
 
     return NotificationMessageResponse(message="All notifications marked as read.")
+
+
+@router.delete(
+    "/read",
+    response_model=DeletedNotificationsResponse,
+)
+def delete_read_notifications(
+    database: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> DeletedNotificationsResponse:
+    result = database.execute(
+        delete(InAppNotification).where(
+            InAppNotification.user_id == current_user.id,
+            InAppNotification.is_read.is_(True),
+        )
+    )
+    database.commit()
+    return DeletedNotificationsResponse(deleted_count=result.rowcount or 0)
 
 
 @router.patch(

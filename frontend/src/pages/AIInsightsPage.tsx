@@ -24,14 +24,16 @@ import type {
   MonitorCheck,
   WebsiteMetric,
 } from "../types/dashboard";
+import { NEPAL_TIME_ZONE, parseApiDate } from "../utils/dateTime";
 
 import "./PerformancePage.css";
 
 function formatDate(value: string): string {
   return new Intl.DateTimeFormat("en", {
+    timeZone: NEPAL_TIME_ZONE,
     dateStyle: "medium",
     timeStyle: "short",
-  }).format(new Date(value));
+  }).format(parseApiDate(value));
 }
 
 function formatResponseTime(
@@ -132,9 +134,7 @@ export function AIInsightsPage() {
 
     return anomalies.filter(
       (anomaly) =>
-        new Date(
-          anomaly.checked_at,
-        ).getTime() >= twentyFourHoursAgo,
+        parseApiDate(anomaly.checked_at).getTime() >= twentyFourHoursAgo,
     ).length;
   }, [anomalies]);
 

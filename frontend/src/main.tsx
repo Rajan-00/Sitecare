@@ -5,6 +5,8 @@ import App from "./App";
 import "./styles.css";
 import ErrorBoundary from "./components/ErrorBoundary";
 
+import "@fontsource-variable/inter/wght.css";
+
 const rootElement = document.getElementById("root");
 
 if (!rootElement) {

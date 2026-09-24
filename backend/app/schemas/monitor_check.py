@@ -1,6 +1,8 @@
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, computed_field
+
+from app.services.check_outcome import check_outcome
 
 
 class MonitorCheckResponse(BaseModel):
@@ -15,6 +17,11 @@ class MonitorCheckResponse(BaseModel):
     anomaly_score: float | None
     anomaly_reason: str | None
     checked_at: datetime
+
+    @computed_field
+    @property
+    def outcome(self) -> str:
+        return check_outcome(self)
 
     model_config = ConfigDict(from_attributes=True)
 

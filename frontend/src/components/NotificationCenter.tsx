@@ -22,13 +22,14 @@ import {
   markNotificationAsRead,
 } from "../services/inAppNotificationApi";
 import type { InAppNotification } from "../types/inAppNotification";
+import { NEPAL_TIME_ZONE, parseApiDate } from "../utils/dateTime";
 
 import "./NotificationCenter.css";
 
 
 function formatRelativeTime(dateValue: string): string {
   const difference =
-    Date.now() - new Date(dateValue).getTime();
+    Date.now() - parseApiDate(dateValue).getTime();
 
   const seconds = Math.floor(difference / 1000);
   const minutes = Math.floor(seconds / 60);
@@ -51,7 +52,9 @@ function formatRelativeTime(dateValue: string): string {
     return `${days}d ago`;
   }
 
-  return new Date(dateValue).toLocaleDateString();
+  return parseApiDate(dateValue).toLocaleDateString(undefined, {
+    timeZone: NEPAL_TIME_ZONE,
+  });
 }
 
 function NotificationIcon({
@@ -140,6 +143,20 @@ export default function NotificationCenter() {
       void loadNotifications();
     }
   }, [open, loadNotifications]);
+
+  useEffect(() => {
+    function refreshNotifications() {
+      void loadUnreadCount();
+      if (open) {
+        void loadNotifications();
+      }
+    }
+
+    window.addEventListener("sitecare:notifications-changed", refreshNotifications);
+    return () => {
+      window.removeEventListener("sitecare:notifications-changed", refreshNotifications);
+    };
+  }, [open, loadUnreadCount, loadNotifications]);
 
   useEffect(() => {
     function handleOutsideClick(event: MouseEvent) {

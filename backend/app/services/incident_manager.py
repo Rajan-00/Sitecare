@@ -8,6 +8,7 @@ from app.models.incident import Incident
 from app.models.monitor_check import MonitorCheck
 from app.models.website import Website
 from app.services.audit import create_audit_log
+from app.services.check_outcome import check_outcome
 from app.services.monitoring_notifications import (
     notify_incident_started,
     notify_website_recovered,
@@ -218,7 +219,13 @@ def update_incident_state(
         website_id=website.id,
     )
 
-    if not monitor_check.is_up:
+    outcome = check_outcome(monitor_check)
+
+    # An inconclusive probe cannot open, extend, or resolve an outage.
+    if outcome in ("blocked", "unknown"):
+        return IncidentUpdateResult(incident=open_incident, event=None)
+
+    if outcome == "down":
         if open_incident is not None:
             updated_incident = update_existing_incident(
                 incident=open_incident,

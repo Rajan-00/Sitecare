@@ -21,6 +21,7 @@ import {
 
 import { getIncidents } from "../services/api";
 import type { Incident } from "../types/dashboard";
+import { NEPAL_TIME_ZONE, parseApiDate } from "../utils/dateTime";
 
 import "./IncidentsPage.css";
 
@@ -31,9 +32,10 @@ type IncidentFilter =
 
 function formatDate(value: string): string {
   return new Intl.DateTimeFormat("en", {
+    timeZone: NEPAL_TIME_ZONE,
     dateStyle: "medium",
     timeStyle: "short",
-  }).format(new Date(value));
+  }).format(parseApiDate(value));
 }
 
 function formatDuration(

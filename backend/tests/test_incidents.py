@@ -224,3 +224,30 @@ def test_incident_limit_validation(
     )
 
     assert response.status_code == 422
+
+
+def test_inconclusive_probe_does_not_resolve_confirmed_incident(
+    client: TestClient,
+    monkeypatch,
+) -> None:
+    website_id = create_website(client)
+    results = [
+        CheckResult(503, 700.0, False, None, "https://example.com/"),
+        CheckResult(None, 10000.0, False, "The website request timed out.", "https://example.com/"),
+        CheckResult(200, 200.0, True, None, "https://example.com/"),
+    ]
+
+    async def next_check(url: str) -> CheckResult:
+        return results.pop(0)
+
+    monkeypatch.setattr("app.services.monitoring_manager.check_website", next_check)
+    endpoint = f"/api/v1/monitoring/websites/{website_id}/check"
+    assert client.post(endpoint).status_code == 201
+    assert client.post(endpoint).status_code == 201
+    incidents = client.get(f"/api/v1/incidents?website_id={website_id}").json()
+    assert incidents[0]["is_resolved"] is False
+    assert incidents[0]["failure_count"] == 1
+
+    assert client.post(endpoint).status_code == 201
+    incidents = client.get(f"/api/v1/incidents?website_id={website_id}").json()
+    assert incidents[0]["is_resolved"] is True

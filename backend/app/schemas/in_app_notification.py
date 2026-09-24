@@ -22,6 +22,7 @@ class InAppNotificationListResponse(BaseModel):
     items: list[InAppNotificationResponse]
     total: int
     unread_count: int
+    read_count: int
     limit: int = Field(ge=1, le=100)
     offset: int = Field(ge=0)
 
@@ -32,3 +33,7 @@ class UnreadCountResponse(BaseModel):
 
 class NotificationMessageResponse(BaseModel):
     message: str
+
+
+class DeletedNotificationsResponse(BaseModel):
+    deleted_count: int

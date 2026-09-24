@@ -37,6 +37,7 @@ import type {
   MonitorCheck,
   WebsiteMetric,
 } from "../types/dashboard";
+import { NEPAL_TIME_ZONE, parseApiDate } from "../utils/dateTime";
 
 import "./AnalyticsPage.css";
 
@@ -47,7 +48,6 @@ interface ChartPoint {
   responseTime: number | null;
   anomalyValue: number | null;
   statusCode: number | null;
-  isUp: boolean;
 }
 
 const PIE_COLORS = {
@@ -57,11 +57,12 @@ const PIE_COLORS = {
 
 function formatTime(value: string): string {
   return new Intl.DateTimeFormat("en", {
+    timeZone: NEPAL_TIME_ZONE,
     month: "short",
     day: "numeric",
     hour: "numeric",
     minute: "2-digit",
-  }).format(new Date(value));
+  }).format(parseApiDate(value));
 }
 
 function formatResponseTime(
@@ -182,17 +183,17 @@ export function AnalyticsPage() {
         id: check.id,
         time: formatTime(check.checked_at),
         fullTime: check.checked_at,
-        responseTime: check.response_time_ms,
-        anomalyValue: check.is_anomaly
+        responseTime: check.outcome === "up" ? check.response_time_ms : null,
+        anomalyValue: check.outcome === "up" && check.is_anomaly
           ? check.response_time_ms
           : null,
         statusCode: check.status_code,
-        isUp: check.is_up,
       }));
   }, [checks]);
 
   const analytics = useMemo(() => {
     const responseTimes = checks
+      .filter((check) => check.outcome === "up")
       .map((check) => check.response_time_ms)
       .filter(
         (value): value is number =>
@@ -200,11 +201,12 @@ export function AnalyticsPage() {
       );
 
     const successfulChecks = checks.filter(
-      (check) => check.is_up,
+      (check) => check.outcome === "up",
     ).length;
 
-    const failedChecks =
-      checks.length - successfulChecks;
+    const failedChecks = checks.filter(
+      (check) => check.outcome === "down",
+    ).length;
 
     const anomalyCount = checks.filter(
       (check) => check.is_anomaly,
@@ -229,9 +231,9 @@ export function AnalyticsPage() {
         : null;
 
     const uptimePercentage =
-      checks.length > 0
-        ? successfulChecks / checks.length * 100
-        : 0;
+      successfulChecks + failedChecks > 0
+        ? successfulChecks / (successfulChecks + failedChecks) * 100
+        : null;
 
     return {
       successfulChecks,
@@ -401,9 +403,11 @@ export function AnalyticsPage() {
               <ShieldCheck size={21} />
 
               <div>
-                <span>Measured uptime</span>
+                <span>Verified check success</span>
                 <strong>
-                  {analytics.uptimePercentage.toFixed(2)}%
+                  {analytics.uptimePercentage === null
+                    ? "—"
+                    : `${analytics.uptimePercentage.toFixed(2)}%`}
                 </strong>
               </div>
             </article>
@@ -542,7 +546,7 @@ export function AnalyticsPage() {
                 </div>
               </div>
 
-              {checks.length === 0 ? (
+              {analytics.successfulChecks + analytics.failedChecks === 0 ? (
                 <div className="chart-empty">
                   <Activity size={32} />
                   <p>No availability data.</p>

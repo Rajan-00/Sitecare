@@ -317,7 +317,7 @@
 }
 
 .preview-window-title small {
-  color: #8290a3;
+  color: #475569;
   font-size: 9px;
 }
 
@@ -360,7 +360,7 @@
 }
 
 .preview-statistics span {
-  color: #8290a3;
+  color: #475569;
   font-size: 8px;
   font-weight: 600;
 }
@@ -392,7 +392,7 @@
 .preview-table-heading {
   padding: 10px 0;
   border-bottom: 1px solid #e8edf3;
-  color: #94a3b8;
+  color: #475569;
   font-size: 8px;
   font-weight: 700;
   letter-spacing: 0.04em;
@@ -439,7 +439,7 @@
 
 .preview-website small {
   overflow: hidden;
-  color: #94a3b8;
+  color: #475569;
   font-size: 8px;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -487,7 +487,7 @@
 }
 
 .preview-chart-heading span {
-  color: #8290a3;
+  color: #475569;
   font-size: 8px;
 }
 
@@ -549,7 +549,7 @@
 
 .preview-alert-card small {
   overflow: hidden;
-  color: #8290a3;
+  color: #475569;
   font-size: 8px;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -807,7 +807,7 @@
 }
 
 .platform-card-heading span {
-  color: #8290a3;
+  color: #475569;
   font-size: 10px;
 }
 
@@ -880,7 +880,7 @@
 }
 
 .platform-metrics span {
-  color: #8290a3;
+  color: #475569;
   font-size: 10px;
 }
 
@@ -1002,7 +1002,7 @@
 }
 
 .landing-copyright {
-  color: #94a3b8;
+  color: #475569;
   font-size: 10px;
 }
 

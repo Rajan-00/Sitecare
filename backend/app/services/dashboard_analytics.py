@@ -10,16 +10,18 @@ from app.schemas.dashboard import (
     DashboardSummaryResponse,
     WebsiteMetricResponse,
 )
+from app.services.check_outcome import check_outcome
 
 
-def calculate_uptime(checks: list[MonitorCheck]) -> float:
-    if not checks:
-        return 0.0
+def calculate_uptime(checks: list[MonitorCheck]) -> float | None:
+    verified = [check for check in checks if check_outcome(check) in ("up", "down")]
+    if not verified:
+        return None
 
-    successful_checks = sum(check.is_up for check in checks)
+    successful_checks = sum(check_outcome(check) == "up" for check in verified)
 
     return round(
-        successful_checks / len(checks) * 100,
+        successful_checks / len(verified) * 100,
         2,
     )
 
@@ -28,7 +30,9 @@ def calculate_average_response_time(
     checks: list[MonitorCheck],
 ) -> float | None:
     response_times = [
-        check.response_time_ms for check in checks if check.response_time_ms is not None
+        check.response_time_ms
+        for check in checks
+        if check_outcome(check) == "up" and check.response_time_ms is not None
     ]
 
     if not response_times:
@@ -58,9 +62,11 @@ def calculate_performance_score(
 
 
 def calculate_health_score(
-    uptime_percentage: float,
+    uptime_percentage: float | None,
     average_response_time_ms: float | None,
-) -> float:
+) -> float | None:
+    if uptime_percentage is None:
+        return None
     performance_score = calculate_performance_score(average_response_time_ms)
 
     health_score = uptime_percentage * 0.70 + performance_score * 0.30
@@ -74,10 +80,7 @@ def get_current_status(
     if latest_check is None:
         return "not_checked"
 
-    if latest_check.is_up:
-        return "up"
-
-    return "down"
+    return check_outcome(latest_check)
 
 
 def load_dashboard_data(
@@ -133,9 +136,9 @@ def build_website_metrics(
 
         latest_check = website_checks[-1] if website_checks else None
 
-        successful_checks = sum(check.is_up for check in website_checks)
+        successful_checks = sum(check_outcome(check) == "up" for check in website_checks)
 
-        failed_checks = len(website_checks) - successful_checks
+        failed_checks = sum(check_outcome(check) == "down" for check in website_checks)
 
         uptime_percentage = calculate_uptime(website_checks)
 

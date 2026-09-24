@@ -21,6 +21,7 @@ from reportlab.platypus import (
 
 from app.models.monitor_check import MonitorCheck
 from app.models.website import Website
+from app.services.check_outcome import check_outcome
 
 
 def format_datetime(
@@ -32,22 +33,32 @@ def format_datetime(
     return value.strftime("%Y-%m-%d %H:%M:%S")
 
 
+def format_check_status(check: MonitorCheck) -> str:
+    outcome = check_outcome(check)
+    return "Operational" if outcome == "up" else outcome.capitalize()
+
+
 def calculate_summary(
     checks: list[MonitorCheck],
 ) -> dict[str, float | int | None]:
     total_checks = len(checks)
 
-    successful_checks = sum(check.is_up for check in checks)
+    successful_checks = sum(check_outcome(check) == "up" for check in checks)
 
-    failed_checks = total_checks - successful_checks
+    failed_checks = sum(check_outcome(check) == "down" for check in checks)
+    verified_checks = successful_checks + failed_checks
 
     anomaly_count = sum(check.is_anomaly for check in checks)
 
     response_times = [
-        check.response_time_ms for check in checks if check.response_time_ms is not None
+        check.response_time_ms
+        for check in checks
+        if check_outcome(check) == "up" and check.response_time_ms is not None
     ]
 
-    uptime_percentage = successful_checks / total_checks * 100 if total_checks else 0.0
+    uptime_percentage = (
+        successful_checks / verified_checks * 100 if verified_checks else None
+    )
 
     average_response_time = sum(response_times) / len(response_times) if response_times else None
 
@@ -56,10 +67,7 @@ def calculate_summary(
         "successful_checks": successful_checks,
         "failed_checks": failed_checks,
         "anomaly_count": anomaly_count,
-        "uptime_percentage": round(
-            uptime_percentage,
-            2,
-        ),
+        "uptime_percentage": round(uptime_percentage, 2) if uptime_percentage is not None else None,
         "average_response_time_ms": (
             round(average_response_time, 2) if average_response_time is not None else None
         ),
@@ -98,7 +106,7 @@ def generate_website_csv(
                 website.url,
                 check.id,
                 format_datetime(check.checked_at),
-                "Operational" if check.is_up else "Down",
+                format_check_status(check),
                 check.status_code or "",
                 check.response_time_ms or "",
                 "Yes" if check.is_anomaly else "No",
@@ -187,7 +195,7 @@ def generate_website_pdf(
             "Total Checks",
             "Operational",
             "Failed",
-            "Uptime",
+            "Verified Check Success",
             "Average Response",
             "AI Anomalies",
         ],
@@ -195,7 +203,11 @@ def generate_website_pdf(
             str(summary["total_checks"]),
             str(summary["successful_checks"]),
             str(summary["failed_checks"]),
-            f"{summary['uptime_percentage']}%",
+            (
+                f"{summary['uptime_percentage']}%"
+                if summary["uptime_percentage"] is not None
+                else "Not available"
+            ),
             (f"{average_response} ms" if average_response is not None else "Not available"),
             str(summary["anomaly_count"]),
         ],
@@ -309,7 +321,7 @@ def generate_website_pdf(
         history_data.append(
             [
                 format_datetime(check.checked_at),
-                ("Operational" if check.is_up else "Down"),
+                format_check_status(check),
                 (str(check.status_code) if check.status_code is not None else "—"),
                 (f"{check.response_time_ms:.2f} ms" if check.response_time_ms is not None else "—"),
                 ("Anomaly" if check.is_anomaly else "Normal"),

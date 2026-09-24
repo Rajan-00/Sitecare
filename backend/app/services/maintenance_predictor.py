@@ -7,6 +7,7 @@ from app.models.website import Website
 from app.schemas.maintenance import (
     MaintenancePredictionResponse,
 )
+from app.services.check_outcome import check_outcome
 
 MINIMUM_PREDICTION_SAMPLES = 10
 PREDICTION_HISTORY_LIMIT = 100
@@ -122,16 +123,18 @@ def calculate_maintenance_prediction(
     website: Website,
     checks: list[MonitorCheck],
 ) -> MaintenancePredictionResponse:
-    total_checks = len(checks)
+    verified_checks = [check for check in checks if check_outcome(check) in ("up", "down")]
+    total_checks = len(verified_checks)
 
     if total_checks:
         failure_rate = round(
-            sum(not check.is_up for check in checks) / total_checks * 100,
+            sum(check_outcome(check) == "down" for check in verified_checks)
+            / total_checks * 100,
             2,
         )
 
         anomaly_rate = round(
-            sum(check.is_anomaly for check in checks) / total_checks * 100,
+            sum(check.is_anomaly for check in verified_checks) / total_checks * 100,
             2,
         )
     else:
@@ -141,7 +144,7 @@ def calculate_maintenance_prediction(
     successful_response_times = [
         float(check.response_time_ms)
         for check in checks
-        if (check.is_up and check.response_time_ms is not None)
+        if (check_outcome(check) == "up" and check.response_time_ms is not None)
     ]
 
     sample_count = len(successful_response_times)

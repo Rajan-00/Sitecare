@@ -18,6 +18,7 @@ from app.schemas.monitor_check import (
 )
 from app.services.access_control import get_owned_website
 from app.services.audit import create_audit_log
+from app.services.check_outcome import check_outcome
 from app.services.monitoring_manager import (
     perform_and_store_check,
 )
@@ -179,10 +180,8 @@ def get_website_status(
 
     if latest_check is None:
         current_status = "not_checked"
-    elif latest_check.is_up:
-        current_status = "up"
     else:
-        current_status = "down"
+        current_status = check_outcome(latest_check)
 
     return WebsiteStatusResponse(
         website_id=website.id,

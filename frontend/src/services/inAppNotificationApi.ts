@@ -1,5 +1,6 @@
 import { getStoredToken } from "./authStorage";
 import type {
+  DeletedNotificationsResponse,
   InAppNotification,
   InAppNotificationListResponse,
   NotificationMessageResponse,
@@ -7,7 +8,7 @@ import type {
 } from "../types/inAppNotification";
 
 const API_BASE_URL =
-  import.meta.env.VITE_API_URL ?? "http://127.0.0.1:8000/api";
+  import.meta.env.VITE_API_URL ?? "http://127.0.0.1:8000/api/v1";
 
 async function notificationRequest<T>(
   endpoint: string,
@@ -76,6 +77,13 @@ export function markAllNotificationsAsRead():
     {
       method: "PATCH",
     },
+  );
+}
+
+export function deleteReadNotifications(): Promise<DeletedNotificationsResponse> {
+  return notificationRequest<DeletedNotificationsResponse>(
+    "/notifications/in-app/read",
+    { method: "DELETE" },
   );
 }
 

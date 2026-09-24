@@ -17,6 +17,7 @@ import {
 
 import { getAuditLogs } from "../services/auditLogApi";
 import type { AuditLog } from "../types/auditLog";
+import { NEPAL_TIME_ZONE, parseApiDate } from "../utils/dateTime";
 
 import "./ActivityPage.css";
 
@@ -133,16 +134,17 @@ if (action === "monitoring.manual_check") {
 
 function formatDate(dateValue: string): string {
   return new Intl.DateTimeFormat(undefined, {
+    timeZone: NEPAL_TIME_ZONE,
     year: "numeric",
     month: "short",
     day: "numeric",
     hour: "numeric",
     minute: "2-digit",
-  }).format(new Date(dateValue));
+  }).format(parseApiDate(dateValue));
 }
 
 function formatRelativeTime(dateValue: string): string {
-  const date = new Date(dateValue);
+  const date = parseApiDate(dateValue);
   const difference = Date.now() - date.getTime();
 
   const seconds = Math.floor(difference / 1000);

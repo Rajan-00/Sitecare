@@ -21,6 +21,7 @@ from app.api.dependencies import (
 from app.db.base import Base
 from app.db.session import get_db
 from app.main import app
+from app.models.in_app_notification import InAppNotification
 from app.models.incident import Incident
 from app.models.monitor_check import MonitorCheck
 from app.models.notification_preference import (
@@ -102,6 +103,7 @@ def database():
 @pytest.fixture(autouse=True)
 def clean_database():
     with Session(test_engine) as database:
+        database.execute(delete(InAppNotification))
         database.execute(delete(Incident))
         database.execute(delete(MonitorCheck))
         database.execute(delete(NotificationPreference))

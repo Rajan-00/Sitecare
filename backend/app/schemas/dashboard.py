@@ -11,7 +11,7 @@ class DashboardSummaryResponse(BaseModel):
     websites_not_checked: int
     total_checks: int
     total_incidents: int
-    overall_uptime_percentage: float
+    overall_uptime_percentage: float | None
     average_response_time_ms: float | None
 
 
@@ -21,8 +21,8 @@ class WebsiteMetricResponse(BaseModel):
     website_url: str
     is_active: bool
     current_status: str
-    health_score: float
-    uptime_percentage: float
+    health_score: float | None
+    uptime_percentage: float | None
     average_response_time_ms: float | None
     total_checks: int
     successful_checks: int

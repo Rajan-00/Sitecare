@@ -1,8 +1,8 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;650;700&display=swap");
+
 
 :root {
   font-family:
-    "Inter",
+    "Inter Variable",
     -apple-system,
     BlinkMacSystemFont,
     "Segoe UI",
@@ -195,7 +195,7 @@ textarea::placeholder {
 
 .dashboard-intro > div:first-child > p {
   margin: 0;
-  color: var(--text-secondary);
+  color: #475569;
   font-size: 11px;
 }
 
@@ -386,7 +386,7 @@ textarea::placeholder {
 
 .website-table th {
   padding: 11px 18px;
-  color: #718096;
+  color: #475569;
   background: #f8fafc;
   font-size: 9px;
   font-weight: 650;

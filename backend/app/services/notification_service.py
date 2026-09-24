@@ -2,6 +2,7 @@ import asyncio
 import logging
 import smtplib
 import ssl
+import certifi  # add with the other imports
 from email.message import EmailMessage
 
 from sqlalchemy import select
@@ -34,7 +35,9 @@ def send_email_sync(
         timeout=15,
     ) as smtp:
         if settings.smtp_use_tls:
-            smtp.starttls(context=ssl.create_default_context())
+            smtp.starttls(
+    context=ssl.create_default_context(cafile=certifi.where())
+)
 
         if settings.smtp_username and settings.smtp_password:
             smtp.login(

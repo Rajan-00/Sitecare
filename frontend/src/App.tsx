@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import {
   BrowserRouter,
   Navigate,
@@ -5,26 +6,78 @@ import {
   Routes,
 } from "react-router-dom";
 
-import AppLayout from "./components/AppLayout";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { AuthProvider } from "./context/AuthContext";
-import ActivityPage from "./pages/ActivityPage";
-import { AddWebsitePage } from "./pages/AddWebsitePage";
-import { AIInsightsPage } from "./pages/AIInsightsPage";
-import { AnalyticsPage } from "./pages/AnalyticsPage";
-import { DashboardPage } from "./pages/DashboardPage";
-import { EditWebsitePage } from "./pages/EditWebsitePage";
-import { IncidentsPage } from "./pages/IncidentsPage";
 import LandingPage from "./pages/LandingPage";
-import { LoginPage } from "./pages/LoginPage";
-import { MaintenancePage } from "./pages/MaintenancePage";
-import NotFoundPage from "./pages/NotFoundPage";
-import NotificationsPage from "./pages/NotificationsPage";
-import ProfilePage from "./pages/ProfilePage";
-import { RegisterPage } from "./pages/RegisterPage";
-import { SettingsPage } from "./pages/SettingsPage";
-import { WebsiteDetailPage } from "./pages/WebsiteDetailPage";
-import { WebsitesPage } from "./pages/WebsitesPage";
+
+// Load these pages only when their routes are opened.
+const AppLayout = lazy(() => import("./components/AppLayout"));
+const ActivityPage = lazy(() => import("./pages/ActivityPage"));
+const AddWebsitePage = lazy(() =>
+  import("./pages/AddWebsitePage").then((module) => ({
+    default: module.AddWebsitePage,
+  }))
+);
+const AIInsightsPage = lazy(() =>
+  import("./pages/AIInsightsPage").then((module) => ({
+    default: module.AIInsightsPage,
+  }))
+);
+const AnalyticsPage = lazy(() =>
+  import("./pages/AnalyticsPage").then((module) => ({
+    default: module.AnalyticsPage,
+  }))
+);
+const DashboardPage = lazy(() =>
+  import("./pages/DashboardPage").then((module) => ({
+    default: module.DashboardPage,
+  }))
+);
+const EditWebsitePage = lazy(() =>
+  import("./pages/EditWebsitePage").then((module) => ({
+    default: module.EditWebsitePage,
+  }))
+);
+const IncidentsPage = lazy(() =>
+  import("./pages/IncidentsPage").then((module) => ({
+    default: module.IncidentsPage,
+  }))
+);
+const LoginPage = lazy(() =>
+  import("./pages/LoginPage").then((module) => ({
+    default: module.LoginPage,
+  }))
+);
+const MaintenancePage = lazy(() =>
+  import("./pages/MaintenancePage").then((module) => ({
+    default: module.MaintenancePage,
+  }))
+);
+const NotFoundPage = lazy(() => import("./pages/NotFoundPage"));
+const NotificationsPage = lazy(() =>
+  import("./pages/NotificationsPage")
+);
+const ProfilePage = lazy(() => import("./pages/ProfilePage"));
+const RegisterPage = lazy(() =>
+  import("./pages/RegisterPage").then((module) => ({
+    default: module.RegisterPage,
+  }))
+);
+const SettingsPage = lazy(() =>
+  import("./pages/SettingsPage").then((module) => ({
+    default: module.SettingsPage,
+  }))
+);
+const WebsiteDetailPage = lazy(() =>
+  import("./pages/WebsiteDetailPage").then((module) => ({
+    default: module.WebsiteDetailPage,
+  }))
+);
+const WebsitesPage = lazy(() =>
+  import("./pages/WebsitesPage").then((module) => ({
+    default: module.WebsitesPage,
+  }))
+);
 
 function ProtectedLayout() {
   return (
@@ -38,107 +91,44 @@ function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <Routes>
-          {/* Public routes */}
-          <Route
-            path="/"
-            element={<LandingPage />}
-          />
+        <Suspense fallback={<div role="status">Loading...</div>}>
+          <Routes>
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
 
-          <Route
-            path="/login"
-            element={<LoginPage />}
-          />
+            <Route element={<ProtectedLayout />}>
+              <Route path="dashboard" element={<DashboardPage />} />
+              <Route path="websites" element={<WebsitesPage />} />
+              <Route path="websites/new" element={<AddWebsitePage />} />
+              <Route
+                path="websites/:websiteId"
+                element={<WebsiteDetailPage />}
+              />
+              <Route
+                path="websites/:websiteId/edit"
+                element={<EditWebsitePage />}
+              />
+              <Route path="incidents" element={<IncidentsPage />} />
+              <Route path="anomalies" element={<AIInsightsPage />} />
+              <Route
+                path="ai-insights"
+                element={<Navigate replace to="/anomalies" />}
+              />
+              <Route path="maintenance" element={<MaintenancePage />} />
+              <Route path="analytics" element={<AnalyticsPage />} />
+              <Route path="settings" element={<SettingsPage />} />
+              <Route path="activity" element={<ActivityPage />} />
+              <Route path="profile" element={<ProfilePage />} />
+              <Route
+                path="notifications"
+                element={<NotificationsPage />}
+              />
+            </Route>
 
-          <Route
-            path="/register"
-            element={<RegisterPage />}
-          />
-
-          {/* Authenticated application */}
-          <Route element={<ProtectedLayout />}>
-            <Route
-              path="dashboard"
-              element={<DashboardPage />}
-            />
-
-            <Route
-              path="websites"
-              element={<WebsitesPage />}
-            />
-
-            <Route
-              path="websites/new"
-              element={<AddWebsitePage />}
-            />
-
-            <Route
-              path="websites/:websiteId"
-              element={<WebsiteDetailPage />}
-            />
-
-            <Route
-              path="websites/:websiteId/edit"
-              element={<EditWebsitePage />}
-            />
-
-            <Route
-              path="incidents"
-              element={<IncidentsPage />}
-            />
-
-            <Route
-              path="anomalies"
-              element={<AIInsightsPage />}
-            />
-
-            <Route
-              path="ai-insights"
-              element={
-                <Navigate
-                  replace
-                  to="/anomalies"
-                />
-              }
-            />
-
-            <Route
-              path="maintenance"
-              element={<MaintenancePage />}
-            />
-
-            <Route
-              path="analytics"
-              element={<AnalyticsPage />}
-            />
-
-            <Route
-              path="settings"
-              element={<SettingsPage />}
-            />
-
-            <Route
-              path="activity"
-              element={<ActivityPage />}
-            />
-
-            <Route
-              path="profile"
-              element={<ProfilePage />}
-            />
-
-            <Route
-              path="notifications"
-              element={<NotificationsPage />}
-            />
-          </Route>
-
-          {/* Public 404 page */}
-          <Route
-            path="*"
-            element={<NotFoundPage />}
-          />
-        </Routes>
+            <Route path="*" element={<NotFoundPage />} />
+          </Routes>
+        </Suspense>
       </AuthProvider>
     </BrowserRouter>
   );

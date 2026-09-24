@@ -27,15 +27,17 @@ import type {
   Website,
   WebsiteMetric,
 } from "../types/dashboard";
+import { NEPAL_TIME_ZONE, parseApiDate } from "../utils/dateTime";
 
 import "./WebsitesPage.css";
 
 function formatDate(value: string): string {
   return new Intl.DateTimeFormat("en", {
+    timeZone: NEPAL_TIME_ZONE,
     month: "short",
     day: "numeric",
     year: "numeric",
-  }).format(new Date(value));
+  }).format(parseApiDate(value));
 }
 
 function formatResponseTime(
@@ -406,9 +408,9 @@ export function WebsitesPage() {
 
                           <td>
                             <strong>
-                              {metric
-                                ? `${metric.uptime_percentage}%`
-                                : "—"}
+                              {metric?.uptime_percentage == null
+                                ? "—"
+                                : `${metric.uptime_percentage}%`}
                             </strong>
                           </td>
 

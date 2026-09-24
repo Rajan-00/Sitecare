@@ -70,7 +70,7 @@ export function AddWebsitePage() {
     <div className="form-page">
       <Link className="back-link" to="/websites">
         <ArrowLeft size={17} />
-        BBack to websites
+        Back to websites
       </Link>
 
       <Link
@@ -115,7 +115,7 @@ export function AddWebsitePage() {
               onChange={(event) =>
                 updateField("name", event.target.value)
               }
-              placeholder="Nepfinity Technologies"
+              placeholder="Name your website"
               minLength={2}
               maxLength={120}
               required

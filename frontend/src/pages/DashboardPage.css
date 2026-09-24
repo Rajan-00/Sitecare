@@ -44,7 +44,7 @@
 }
 
 .dashboard-last-updated {
-  color: #8290a3;
+  color: #475569;
   font-size: 10px;
 }
 
@@ -254,7 +254,7 @@
 .statistics-grid .stat-card__description {
   margin: 7px 0 0;
   overflow: hidden;
-  color: #8290a3;
+  color: #475569;
   font-size: 11px;
   line-height: 1.4;
   text-overflow: ellipsis;
@@ -336,7 +336,7 @@
 .website-table th {
   padding: 11px 16px;
   border-bottom: 1px solid #e8edf3;
-  color: #8290a3;
+  color: #475569;
   background: #f8fafc;
   font-size: 10px;
   font-weight: 700;
@@ -406,6 +406,8 @@
   overflow: hidden;
   color: #172033;
   font-size: 12px;
+  min-height: 24px;
+  line-height: 24px;
   font-weight: 650;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -419,8 +421,10 @@
   display: block;
   max-width: 240px;
   overflow: hidden;
-  color: #8290a3;
+  color: #475569;
   font-size: 10px;
+  min-height: 24px;
+  line-height: 24px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }

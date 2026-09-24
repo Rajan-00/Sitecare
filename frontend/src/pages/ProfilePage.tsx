@@ -28,6 +28,7 @@ import type {
   PasswordChange,
   ProfileUpdate,
 } from "../types/account";
+import { NEPAL_TIME_ZONE, parseApiDate } from "../utils/dateTime";
 
 import "./ProfilePage.css";
 
@@ -43,12 +44,13 @@ const initialPasswords: PasswordChange = {
 
 function formatDate(dateValue: string): string {
   return new Intl.DateTimeFormat(undefined, {
+    timeZone: NEPAL_TIME_ZONE,
     year: "numeric",
     month: "short",
     day: "numeric",
     hour: "numeric",
     minute: "2-digit",
-  }).format(new Date(dateValue));
+  }).format(parseApiDate(dateValue));
 }
 
 export default function ProfilePage() {
