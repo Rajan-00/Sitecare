@@ -1,6 +1,6 @@
 from functools import lru_cache
 
-from pydantic import Field
+from pydantic import Field, field_validator
 from pydantic_settings import (
     BaseSettings,
     SettingsConfigDict,
@@ -18,8 +18,9 @@ def default_cors_origins() -> list[str]:
 
 class Settings(BaseSettings):
     app_name: str = "SiteCare AI API"
-    app_version: str = "1.0.0"
+    app_version: str = "1.0.1"
     app_env: str = "development"
+
     database_url: str = "sqlite:///./sitecare.db"
 
     cors_origins: list[str] = Field(
@@ -45,8 +46,39 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
+        case_sensitive=False,
         extra="ignore",
     )
+
+    @field_validator(
+        "database_url",
+        mode="before",
+    )
+    @classmethod
+    def normalize_database_url(
+        cls,
+        value: str,
+    ) -> str:
+        """
+        Railway may provide a PostgreSQL URL without
+        the explicit psycopg SQLAlchemy driver name.
+        """
+
+        if value.startswith("postgres://"):
+            return value.replace(
+                "postgres://",
+                "postgresql+psycopg://",
+                1,
+            )
+
+        if value.startswith("postgresql://"):
+            return value.replace(
+                "postgresql://",
+                "postgresql+psycopg://",
+                1,
+            )
+
+        return value
 
     @property
     def smtp_configured(self) -> bool:
