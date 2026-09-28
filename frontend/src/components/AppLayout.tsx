@@ -57,7 +57,7 @@ const navigationItems: NavigationItem[] = [
     icon: Siren,
   },
   {
-    label: "Performance",
+    label: "AI Anomaly Insights",
     path: "/anomalies",
     icon: Activity,
   },
@@ -150,7 +150,7 @@ function getPageInformation(pathname: string): {
     || pathname.startsWith("/ai-insights")
   ) {
     return {
-      title: "Performance",
+      title: "AI Anomaly Insights",
       description:
         "Review unusual response-time behaviour.",
     };
